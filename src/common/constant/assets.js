@@ -6,6 +6,7 @@ export const ImageAssets = {
   otpMockup: "/images/otp_mockup.png",
   setPassMockup: "/images/setPass_mockup.png",
   placeholderAnimal: "/images/placeholder_animal.png",
+  backgroundBeranda: "/images/bg_beranda.png",
 };
 
 export const IconAssets = {
@@ -22,4 +23,6 @@ export const IconAssets = {
   profileActive: "/icons/profile_active.svg",
   profile: "/icons/profile.svg",
   signOut: "/icons/sign_out.svg",
+  note: "/icons/note.svg",
+  imageUpload: "/icons/image_up.svg",
 };
