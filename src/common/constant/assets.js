@@ -1,0 +1,25 @@
+export const ImageAssets = {
+  logoApp: "/images/hewanku_logo.png",
+  loginMockup: "/images/login_mockup.png",
+  registerMockup: "/images/register_mockup.png",
+  forgotPassMockup: "/images/forgot_pass_mockup.png",
+  otpMockup: "/images/otp_mockup.png",
+  setPassMockup: "/images/setPass_mockup.png",
+  placeholderAnimal: "/images/placeholder_animal.png",
+};
+
+export const IconAssets = {
+  appleIcon: "/icons/apple_icon.svg",
+  facebookIcon: "/icons/facebook_icon.svg",
+  googleIcon: "/icons/google_icon.svg",
+  back: "/icons/back.svg",
+  formActive: "/icons/form_active.svg",
+  form: "/icons/form.svg",
+  menuActive: "/icons/menu_active.svg",
+  menu: "/icons/menu.svg",
+  paymentActive: "/icons/payment_active.svg",
+  payment: "/icons/payment.svg",
+  profileActive: "/icons/profile_active.svg",
+  profile: "/icons/profile.svg",
+  signOut: "/icons/sign_out.svg",
+};
