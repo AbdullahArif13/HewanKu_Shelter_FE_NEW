@@ -3,9 +3,11 @@ import SidebarBeranda from "@/components/shared/sidebar_beranda";
 
 export default function BerandaLayout({ children }) {
   return (
-    <Row className="min-w-screen bg-gray-50">
+    <Row className="min-w-screen bg-[#F2F2F2]">
       <SidebarBeranda />
-      {children}
+      <div className="flex-1 min-h-screen p-12 bg-[url('/images/bg_beranda.png')] bg-no-repeat bg-[size:100%] bg-bottom">
+        {children}
+      </div>
     </Row>
   );
 }

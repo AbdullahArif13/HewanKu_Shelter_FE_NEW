@@ -31,8 +31,8 @@ export default function SidebarBeranda() {
       iconActive: IconAssets.paymentActive,
     },
     {
-      label: "Akun",
-      href: "/profile",
+      label: "Shelter",
+      href: "/profile_shelter",
       icon: IconAssets.profile,
       iconActive: IconAssets.profileActive,
     },
