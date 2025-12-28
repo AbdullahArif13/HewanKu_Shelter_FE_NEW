@@ -10,10 +10,13 @@ import {
 import HeaderHome from "./components/header_home";
 import TableHome from "./components/table_home";
 import { useShelter } from "@/contexts/shelter-context";
+import { useAuth } from "@/contexts/auth-context";
 
 export default function HomePage() {
+  const { user, isLoading: authLoading } = useAuth();
   const { hasShelter, isLoading } = useShelter();
-  if (isLoading) return null;
+
+  if (authLoading || isLoading) return null;
   return (
     <Column>
       <HeaderHome />

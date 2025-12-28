@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useState, useEffect } from "react";
 import {
   login as loginAction,
   register as registerAction,
@@ -18,6 +18,18 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
 
+  useEffect(() => {
+    const storedUser = localStorage.getItem("auth_user");
+    if (storedUser) {
+      try {
+        setUser(JSON.parse(storedUser));
+      } catch {
+        localStorage.removeItem("auth_user");
+      }
+    }
+    setIsLoading(false);
+  }, []);
+
   const login = async ({ body }) => {
     setIsLoading(true);
     try {
@@ -29,7 +41,8 @@ export function AuthProvider({ children }) {
       }
 
       setUser(res.data);
-      // router.push("/home");
+      localStorage.setItem("auth_user", JSON.stringify(res.data)); // 🔐 PERSIST
+      router.push("/home");
     } catch (error) {
       toast.error(error?.message || "Login failed");
     } finally {
@@ -39,6 +52,7 @@ export function AuthProvider({ children }) {
 
   const logout = () => {
     setUser(null);
+    localStorage.removeItem("auth_user");
     router.push("/auth/login");
   };
 
@@ -152,9 +166,7 @@ export function AuthProvider({ children }) {
 }
 
 export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error("useAuth must be used within AuthProvider");
-  }
-  return context;
+  const ctx = useContext(AuthContext);
+  if (!ctx) throw new Error("useAuth must be used within AuthProvider");
+  return ctx;
 };

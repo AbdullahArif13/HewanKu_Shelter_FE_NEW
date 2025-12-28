@@ -6,12 +6,13 @@ import { IconAssets } from "@/common/constant/assets";
 import { cn } from "@/lib/utils";
 import { Column, Container, Text } from "./custom_widget";
 import { useShelter } from "@/contexts/shelter-context";
+import { useAuth } from "@/contexts/auth-context";
 
 export default function SidebarBeranda() {
+  const { user, isLoading: authLoading } = useAuth();
   const { hasShelter, isLoading } = useShelter();
   const pathname = usePathname();
   const router = useRouter();
-  const { resetShelter } = useShelter();
 
   const navItems = [
     {
@@ -49,12 +50,11 @@ export default function SidebarBeranda() {
   };
 
   const handleLogout = () => {
-    resetShelter();
     localStorage.clear();
     router.push("/login");
   };
 
-  if (isLoading) return null;
+  if (authLoading || isLoading) return null;
 
   return (
     <Container className="w-[88px] min-h-screen bg-white flex flex-col items-center py-6">

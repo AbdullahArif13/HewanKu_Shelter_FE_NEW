@@ -1,39 +1,39 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import { useAuth } from "@/contexts/auth-context";
+import { useGetShelter } from "@/hooks/shelter.hooks";
 
-const ShelterContext = createContext();
+const ShelterContext = createContext(null);
 
 export function ShelterProvider({ children }) {
-  const [hasShelter, setHasShelter] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  const { user, isLoading: authLoading } = useAuth();
 
-  useEffect(() => {
-    // 🔹 nanti ganti ke API / backend
-    const stored = localStorage.getItem("hasShelter");
-    setHasShelter(stored === "true");
-    setIsLoading(false);
-  }, []);
+  const { shelter, isLoading, refetch } = useGetShelter({
+    id: user?.id,
+  });
 
-  const markShelterCreated = () => {
-    setHasShelter(true);
-    localStorage.setItem("hasShelter", "true");
-  };
+  const hasShelter = Boolean(shelter?.statusShelter === true);
 
-  const resetShelter = () => {
-    setHasShelter(false);
-    localStorage.removeItem("hasShelter");
-  };
+  const value = useMemo(
+    () => ({
+      hasShelter,
+      isLoading: authLoading || isLoading,
+      refetchShelter: refetch,
+      shelter,
+    }),
+    [hasShelter, authLoading, isLoading, refetch, shelter]
+  );
 
   return (
-    <ShelterContext.Provider
-      value={{ hasShelter, isLoading, markShelterCreated, resetShelter }}
-    >
-      {children}
-    </ShelterContext.Provider>
+    <ShelterContext.Provider value={value}>{children}</ShelterContext.Provider>
   );
 }
 
 export function useShelter() {
-  return useContext(ShelterContext);
+  const ctx = useContext(ShelterContext);
+  if (!ctx) {
+    throw new Error("useShelter must be used within ShelterProvider");
+  }
+  return ctx;
 }

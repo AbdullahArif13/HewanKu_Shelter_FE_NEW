@@ -29,6 +29,9 @@ import {
 import { useShelter } from "@/contexts/shelter-context";
 import { useNavigator } from "@/utils/helper";
 
+import { useAuth } from "@/contexts/auth-context";
+import { useAddShelterMutation } from "@/hooks/shelter.hooks";
+
 const shelterData = {
   shelterName: "",
   ownerName: "",
@@ -45,8 +48,14 @@ export default function BuatShelter() {
   const [previewUrl, setPreviewUrl] = useState("");
   const [file, setFile] = useState(null);
   const [errors, setErrors] = useState({});
-  const { markShelterCreated } = useShelter();
   const nav = useNavigator();
+
+  const { user } = useAuth();
+  const { addShelterMutation } = useAddShelterMutation({
+    successAction: () => {
+      nav.replace("/home");
+    },
+  });
 
   useEffect(() => {
     return () => {
@@ -90,7 +99,11 @@ export default function BuatShelter() {
   });
 
   const handleSubmit = () => {
-    // 🔴 validasi minimal
+    if (!user?.id) {
+      toast.error("User belum terbaca, silakan login ulang");
+      return;
+    }
+
     if (!shelter.shelterName || !shelter.ownerName || !shelter.email) {
       toast.error("Lengkapi data shelter terlebih dahulu");
       return;
@@ -101,14 +114,23 @@ export default function BuatShelter() {
       return;
     }
 
-    // ✅ simulasi submit sukses
-    toast.success("Shelter berhasil dibuat");
+    // payload sesuai backend kamu
+    const payload = {
+      namaShelter: shelter.shelterName,
+      namaOwner: shelter.ownerName,
+      email: shelter.email,
+      nomorHandphone: shelter.noTelephone,
+      metodePembayaran: shelter.metodePembayaran,
+      negara: shelter.negara,
+      jalan: shelter.jalan,
+      zipCode: shelter.zipCode,
+      // kalau backend butuh file, beda lagi (multipart/form-data)
+    };
 
-    // 🔓 unlock sistem
-    markShelterCreated();
-
-    // 🔁 redirect ke home
-    nav.replace("/home");
+    addShelterMutation.mutate({
+      id: user.id,
+      payload,
+    });
   };
 
   return (
@@ -328,9 +350,10 @@ export default function BuatShelter() {
             <Button
               type="button"
               onClick={handleSubmit}
-              className="h-[40px] w-1/4 bg-[#FF8D28] hover:bg-[#FBA81F] cursor-pointer rounded-sm"
+              disabled={addShelterMutation.isPending}
+              className="h-[40px] w-1/4 bg-[#FF8D28] hover:bg-[#FBA81F] rounded-sm"
             >
-              Buat Shelter
+              {addShelterMutation.isPending ? "Menyimpan..." : "Buat Shelter"}
             </Button>
           </Column>
         </Row>
