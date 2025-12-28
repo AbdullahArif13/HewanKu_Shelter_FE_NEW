@@ -1,15 +1,17 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { IconAssets, ImageAssets } from "@/common/constant/assets";
+import { IconAssets } from "@/common/constant/assets";
 import { cn } from "@/lib/utils";
 import { Column, Container, Text } from "./custom_widget";
+import { useShelter } from "@/contexts/shelter-context";
 
 export default function SidebarBeranda() {
+  const { hasShelter, isLoading } = useShelter();
   const pathname = usePathname();
   const router = useRouter();
+  const { resetShelter } = useShelter();
 
   const navItems = [
     {
@@ -41,40 +43,53 @@ export default function SidebarBeranda() {
   const isActive = (href) =>
     pathname === href || pathname?.startsWith(href + "/");
 
+  const handleNavigate = (href) => {
+    if (!hasShelter) return; // 🔒 LOCK NAVIGATION
+    router.push(href);
+  };
+
   const handleLogout = () => {
-    // 🔐 nanti sesuaikan dengan auth kamu
-    // localStorage.removeItem("token");
-    // cookies.remove("token");
+    resetShelter();
+    localStorage.clear();
     router.push("/login");
   };
 
+  if (isLoading) return null;
+
   return (
-    <Container className="w-[88px] min-h-screen bg-white flex flex-col items-center py-15">
+    <Container className="w-[88px] min-h-screen bg-white flex flex-col items-center py-6">
+      {/* MENU */}
       <Column className="flex flex-col gap-8 flex-1">
         {navItems.map((item) => {
           const active = isActive(item.href);
 
           return (
-            <Link
+            <button
               key={item.href}
-              href={item.href}
+              onClick={() => handleNavigate(item.href)}
+              disabled={!hasShelter}
               className={cn(
                 "flex flex-col items-center gap-1 transition",
-                active ? "text-orange-500" : "text-gray-500 hover:text-gray-700"
+                active && hasShelter ? "text-orange-500" : "text-gray-500",
+                !hasShelter
+                  ? "opacity-40 cursor-not-allowed"
+                  : "hover:text-gray-700 cursor-pointer"
               )}
             >
               <Image
-                src={active ? item.iconActive : item.icon}
+                src={active && hasShelter ? item.iconActive : item.icon}
                 alt={item.label}
                 width={22}
                 height={22}
                 className="object-cover"
               />
               <span className="text-[11px] font-medium">{item.label}</span>
-            </Link>
+            </button>
           );
         })}
       </Column>
+
+      {/* LOGOUT (TETAP AKTIF) */}
       <button
         onClick={handleLogout}
         className="mt-6 flex flex-col items-center gap-1 text-gray-500 hover:text-red-500 transition cursor-pointer"

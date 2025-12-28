@@ -7,6 +7,11 @@ export const ImageAssets = {
   setPassMockup: "/images/setPass_mockup.png",
   placeholderAnimal: "/images/placeholder_animal.png",
   backgroundBeranda: "/images/bg_beranda.png",
+  avatarPlaceholder: "/images/avatar_placeholder.png",
+  qrisLogo: "/images/qris.png",
+  mandiriLogo: "/images/mandiri.png",
+  gopayLogo: "/images/gopay.png",
+  danaLogo: "/images/dana.png",
 };
 
 export const IconAssets = {
@@ -25,4 +30,6 @@ export const IconAssets = {
   signOut: "/icons/sign_out.svg",
   note: "/icons/note.svg",
   imageUpload: "/icons/image_up.svg",
+  edit: "/icons/edit.svg",
+  delete: "/icons/delete.svg",
 };

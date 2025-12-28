@@ -1,79 +1,34 @@
 "use client";
 
-import { useState } from "react";
 import {
-  SizedBox,
-  Text,
   Column,
   Container,
-  Padding,
   Row,
+  Text,
+  SizedBox,
 } from "@/components/shared/custom_widget";
-import { Button } from "@/components/ui/button";
-import Image from "next/image";
-import { ImageAssets, IconAssets } from "@/common/constant/assets";
-import { useNavigator } from "@/utils/helper";
+import HeaderHome from "./components/header_home";
+import TableHome from "./components/table_home";
+import { useShelter } from "@/contexts/shelter-context";
 
 export default function HomePage() {
-  const nav = useNavigator();
+  const { hasShelter, isLoading } = useShelter();
+  if (isLoading) return null;
   return (
     <Column>
-      <Row className="gap-12">
-        <Container className="relative w-1/2 rounded-lg p-5 flex flex-col overflow-hidden">
-          {/* Background image */}
-          <div
-            className="absolute inset-0 bg-[url('/images/shelter_placeholder.png')] 
-               bg-no-repeat bg-cover bg-center"
-          />
-
-          {/* Overlay gelap */}
-          <div className="absolute inset-0 bg-black/50" />
-
-          {/* Content */}
-          <div className="relative z-10">
-            <Text className="font-semibold text-neutral-50 text-xl mb-1">
-              Ayo Buat Shelter Kamuu
-            </Text>
-            <Text className="text-neutral-50 text-sm">
-              Berikan Kenyamanan buat hewanmu
-            </Text>
-            <SizedBox height={25} />
-            <Button
-              type="button"
-              onClick={() => nav.push("/home/buat_shelter")}
-              className="h-[40px] w-1/4 bg-[#FF8D28] hover:bg-[#FBA81F] cursor-pointer rounded-sm"
-            >
-              Buat Shelter
-            </Button>
-          </div>
+      <HeaderHome />
+      <SizedBox height={25} />
+      {hasShelter && <TableHome />}
+      {!hasShelter && (
+        <Container className="bg-white rounded-xl p-8 text-center mt-6">
+          <Text className="text-lg font-semibold mb-2">
+            Kamu belum memiliki shelter
+          </Text>
+          <Text className="text-sm text-gray-500 mb-4">
+            Silakan buat shelter terlebih dahulu untuk mengelola hewan.
+          </Text>
         </Container>
-        <div className="flex flex-col">
-          <Text className="font-semibold text-xl mb-1">
-            Hewan di Shelter kamu
-          </Text>
-          <Text className="text-sm mb-5">
-            Jaga Hewan Kamu dengan baik sebelum adopsi
-          </Text>
-          <Container className="bg-white rounded-xl p-3">
-            <Row className="gap-3">
-              <Container className="bg-[#FD7E14] rounded-full pt-3 pb-3 pl-3 pr-2">
-                <Image
-                  src={IconAssets.note}
-                  alt="noteIcon"
-                  width={15}
-                  height={15}
-                />
-              </Container>
-              <div className="flex flex-col">
-                <Text className="font-semibold text-lg">6</Text>
-                <Text className="text-xs text-[#68676E]">
-                  Hewan yang siap di adopsi
-                </Text>
-              </div>
-            </Row>
-          </Container>
-        </div>
-      </Row>
+      )}
     </Column>
   );
 }

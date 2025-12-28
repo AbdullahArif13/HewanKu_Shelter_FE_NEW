@@ -7,30 +7,21 @@ import {
   Container,
   Row,
   Text,
+  SizedBox,
 } from "@/components/shared/custom_widget";
-import { dummyPembayaran } from "@/data/dummy/data_dummy";
-import { ImageAssets } from "@/common/constant/assets";
-import { formatRupiah } from "@/utils/helper";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { dummyFormStatus } from "@/data/dummy/data_dummy";
+import { ChevronLeft, ChevronRight, Check, X } from "lucide-react";
 
-const paymentLogoMap = {
-  qris: ImageAssets.qrisLogo,
-  mandiri: ImageAssets.mandiriLogo,
-  gopay: ImageAssets.gopayLogo,
-  dana: ImageAssets.danaLogo,
-};
-
-export default function PembayaranPage() {
+export default function TableFormStatus() {
   const [currentPage, setCurrentPage] = useState(1);
-  const postPerPage = 6;
+  const postPerPage = 4;
 
-  const totalPosts = dummyPembayaran.length;
+  const totalPosts = dummyFormStatus.length;
   const totalPages = Math.ceil(totalPosts / postPerPage);
 
   const endIndex = currentPage * postPerPage;
   const startIndex = endIndex - postPerPage;
-  const currentEndIndex = Math.min(endIndex, totalPosts);
-  const currentPosts = dummyPembayaran.slice(startIndex, endIndex);
+  const currentPosts = dummyFormStatus.slice(startIndex, endIndex);
 
   const paginate = (page) => setCurrentPage(page);
 
@@ -38,27 +29,23 @@ export default function PembayaranPage() {
   for (let i = 1; i <= totalPages; i++) pageNumbers.push(i);
 
   return (
-    <Column crossAxisAlignment="start" className="w-full p-6">
-      <Text className="font-semibold text-xl mb-4">Pembayaran</Text>
-
+    <>
       <Container className="w-full border-gray-200 rounded-xl overflow-hidden">
-        {/* Header */}
-        <div className="grid grid-cols-[1.6fr_0.8fr_0.8fr_0.9fr_0.9fr] px-6 py-4 border-b-2 border-[#6C7AA0] text-sm font-semibold text-gray-900">
+        <div className="grid grid-cols-[1.6fr_0.8fr_0.8fr_0.9fr_0.5fr_0.5fr] px-6 py-4 border-b border-[#6C7AA0] text-sm font-semibold text-gray-900">
           <div>Daftar Hewan</div>
-          <div>Harga</div>
-          <div>Pembayaran</div>
-          <div>User</div>
+          <div>Lihat Form</div>
           <div>Waktu Masuk</div>
+          <div>User</div>
+          <div>Setuju</div>
+          <div>Tolak</div>
         </div>
 
-        {/* Rows */}
         <div className="divide-y">
           {currentPosts.map((item) => (
             <div
               key={item.id}
-              className="my-4 grid grid-cols-[1.6fr_0.8fr_0.8fr_0.9fr_0.9fr] px-6 py-2 items-center bg-white rounded-4xl"
+              className="my-4 grid grid-cols-[1.6fr_0.8fr_0.8fr_0.9fr_0.5fr_0.5fr] px-6 py-3 items-center bg-white rounded-4xl"
             >
-              {/* Daftar Hewan */}
               <div className="flex items-center gap-3 min-w-0">
                 <div className="relative w-8 h-8 rounded-full overflow-hidden flex-shrink-0">
                   <Image
@@ -78,23 +65,10 @@ export default function PembayaranPage() {
                 </div>
               </div>
 
-              {/* Harga */}
-              <div className="text-xs text-gray-900">
-                {formatRupiah(item.price)}
-              </div>
+              <div className="text-xs text-gray-900">{item.pdf}</div>
 
-              {/* Pembayaran */}
-              <div className="flex items-center">
-                <Image
-                  src={paymentLogoMap[item.paymentMethod]}
-                  alt={item.paymentMethod}
-                  width={item.paymentMethod == "qris" ? 40 : 50}
-                  height={item.paymentMethod == "qris" ? 40 : 50}
-                  className="object-contain"
-                />
-              </div>
+              <div className="text-xs text-gray-900">{item.timeInText}</div>
 
-              {/* User */}
               <div className="flex items-center gap-3 min-w-0">
                 <div className="relative w-8 h-8 rounded-full overflow-hidden flex-shrink-0">
                   <Image
@@ -109,15 +83,17 @@ export default function PembayaranPage() {
                 </p>
               </div>
 
-              {/* Waktu */}
-              <div className="text-xs text-gray-900">{item.timeInText}</div>
+              <button className="cursor-pointer">
+                <Check color="#000000" />
+              </button>
+              <button className="cursor-pointer">
+                <X color="#000000" />
+              </button>
             </div>
           ))}
         </div>
       </Container>
-
-      {/* PAGINATION (tetap pakai widget kamu) */}
-      <Row className="gap-x-2" mainAxisAlignment="between">
+      <Row className="gap-x-2 my-4" mainAxisAlignment="between">
         <button
           onClick={() => paginate(currentPage - 1)}
           disabled={currentPage === 1}
@@ -163,6 +139,6 @@ export default function PembayaranPage() {
           <ChevronRight size={16} />
         </button>
       </Row>
-    </Column>
+    </>
   );
 }
