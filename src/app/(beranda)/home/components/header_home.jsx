@@ -3,29 +3,29 @@
 import {
   SizedBox,
   Text,
-  Column,
   Container,
-  Padding,
   Row,
 } from "@/components/shared/custom_widget";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
-import { ImageAssets, IconAssets } from "@/common/constant/assets";
+import { IconAssets } from "@/common/constant/assets";
 import { useNavigator } from "@/utils/helper";
 import { useShelter } from "@/contexts/shelter-context";
+import { useAuth } from "@/contexts/auth-context";
 
 export default function HeaderHome() {
   const nav = useNavigator();
-  const { hasShelter } = useShelter();
+  const { user, isLoading: authLoading } = useAuth();
+  const { hasShelter, isLoading } = useShelter();
+
+  if (authLoading || isLoading) return null;
 
   return (
     <Row className="gap-12">
       <Container className="relative w-1/2 rounded-lg p-5 flex flex-col overflow-hidden">
-        <div
-          className="absolute inset-0 bg-[url('/images/shelter_placeholder.png')] 
-               bg-no-repeat bg-cover bg-center"
-        />
+        <div className="absolute inset-0 bg-[url('/images/shelter_placeholder.png')] bg-no-repeat bg-cover bg-center" />
         <div className="absolute inset-0 bg-black/50" />
+
         <div className="relative z-10">
           <Text className="font-semibold text-neutral-50 text-xl mb-1">
             Ayo Buat Shelter Kamuu
@@ -33,7 +33,9 @@ export default function HeaderHome() {
           <Text className="text-neutral-50 text-sm">
             Berikan Kenyamanan buat hewanmu
           </Text>
+
           <SizedBox height={25} />
+
           {!hasShelter ? (
             <Button
               type="button"
@@ -53,6 +55,7 @@ export default function HeaderHome() {
           )}
         </div>
       </Container>
+
       <div className="flex flex-col">
         <Text className="font-semibold text-xl mb-1">
           Hewan di Shelter kamu
@@ -60,9 +63,10 @@ export default function HeaderHome() {
         <Text className="text-sm mb-5">
           Jaga Hewan Kamu dengan baik sebelum adopsi
         </Text>
+
         <Container className="bg-white rounded-xl p-3">
           <Row className="gap-3">
-            <Container className="bg-[#FD7E14] rounded-full pt-3 pb-3 pl-3 pr-2">
+            <Container className="bg-[#FD7E14] rounded-full p-3">
               <Image
                 src={IconAssets.note}
                 alt="noteIcon"
@@ -70,6 +74,7 @@ export default function HeaderHome() {
                 height={15}
               />
             </Container>
+
             <div className="flex flex-col">
               <Text className="font-semibold text-lg">6</Text>
               <Text className="text-xs text-[#68676E]">
