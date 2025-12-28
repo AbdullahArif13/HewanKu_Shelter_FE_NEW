@@ -26,9 +26,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useShelter } from "@/contexts/shelter-context";
+import { useNavigator } from "@/utils/helper";
 
 const shelterData = {
-  shleterName: "",
+  shelterName: "",
   ownerName: "",
   email: "",
   noTelephone: "",
@@ -43,6 +45,8 @@ export default function BuatShelter() {
   const [previewUrl, setPreviewUrl] = useState("");
   const [file, setFile] = useState(null);
   const [errors, setErrors] = useState({});
+  const { markShelterCreated } = useShelter();
+  const nav = useNavigator();
 
   useEffect(() => {
     return () => {
@@ -84,6 +88,28 @@ export default function BuatShelter() {
     noClick: true,
     noKeyboard: true,
   });
+
+  const handleSubmit = () => {
+    // 🔴 validasi minimal
+    if (!shelter.shelterName || !shelter.ownerName || !shelter.email) {
+      toast.error("Lengkapi data shelter terlebih dahulu");
+      return;
+    }
+
+    if (!file) {
+      toast.error("Upload foto shelter terlebih dahulu");
+      return;
+    }
+
+    // ✅ simulasi submit sukses
+    toast.success("Shelter berhasil dibuat");
+
+    // 🔓 unlock sistem
+    markShelterCreated();
+
+    // 🔁 redirect ke home
+    nav.replace("/home");
+  };
 
   return (
     <Container className="bg-white border border-gray-200 rounded-lg">
@@ -179,7 +205,7 @@ export default function BuatShelter() {
                 <Label htmlFor="shelterName">Nama Shelter</Label>
                 <Input
                   id="shelterName"
-                  value={shelter.shleterName}
+                  value={shelter.shelterName}
                   onChange={(e) => updateShelter("shelterName", e.target.value)}
                   className="bg-white rounded-sm focus-visible:ring-[3px] focus-visible:ring-orange-500/20 focus-visible:border-orange-500"
                 />
@@ -196,11 +222,11 @@ export default function BuatShelter() {
               </div>
 
               <div className="grid w-full gap-2">
-                <Label htmlFor="noTelp">Nomor Telephone</Label>
+                <Label htmlFor="noTelephone">Nomor Telephone</Label>
                 <Input
-                  id="noTelp"
+                  id="noTelephone"
                   value={shelter.noTelephone}
-                  onChange={(e) => updateShelter("noTelp", e.target.value)}
+                  onChange={(e) => updateShelter("noTelephone", e.target.value)}
                   className="bg-white rounded-sm focus-visible:ring-[3px] focus-visible:ring-orange-500/20 focus-visible:border-orange-500"
                 />
               </div>
@@ -301,6 +327,7 @@ export default function BuatShelter() {
             <SizedBox height={25} />
             <Button
               type="button"
+              onClick={handleSubmit}
               className="h-[40px] w-1/4 bg-[#FF8D28] hover:bg-[#FBA81F] cursor-pointer rounded-sm"
             >
               Buat Shelter
