@@ -65,6 +65,7 @@ export default function FormRegister() {
       nama: `${formData.firstName} ${formData.lastName}`.trim(),
       noTelepon: formData.phone,
       password: formData.password,
+      role: "user",
     };
 
     const result = await register(payload);
