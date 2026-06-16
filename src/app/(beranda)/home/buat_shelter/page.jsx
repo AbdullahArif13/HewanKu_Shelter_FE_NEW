@@ -30,7 +30,7 @@ import { useShelter } from "@/contexts/shelter-context";
 import { useNavigator } from "@/utils/helper";
 
 import { useAuth } from "@/contexts/auth-context";
-import { useAddShelterMutation } from "@/hooks/shelter.hooks";
+import { useCreateShelterMutation } from "@/hooks/shelter.hooks";
 
 const shelterData = {
   shelterName: "",
@@ -51,7 +51,7 @@ export default function BuatShelter() {
   const nav = useNavigator();
 
   const { user } = useAuth();
-  const { addShelterMutation } = useAddShelterMutation({
+  const { mutate: addShelterMutation } = useCreateShelterMutation({
     successAction: () => {
       nav.replace("/home");
     },

@@ -1,64 +1,31 @@
-import { fetch } from "@/utils/baseFetch";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo } from "react";
 import { toast } from "sonner";
 import {
-  getShelter,
-  createShelter,
-  getShelterProfile,
-  updateShelterProfile,
-  getShelterOrders,
-  confirmOrder,
-  fillOrderForm,
-  createOrder,
-  loginShelter,
-  registerShelter,
-  forgotPasswordShelter,
-} from "@/actions/shelter.action";
+  getUserProfile,
+  updateUserProfile,
+  getUserOrders,
+  createUserOrder,
+  fillUserOrderForm,
+  getUserFavorites,
+  addToFavorites,
+  removeFromFavorites,
+  loginUser,
+  registerUser,
+  forgotPasswordUser,
+} from "@/actions/user.action";
 
-// ============ SHELTER QUERIES ============
-export function useGetShelter() {
-  const { data, isLoading, isPending, refetch } = useQuery({
-    queryKey: ["getShelter"],
-    queryFn: () => getShelter(),
-    retry: false,
-    staleTime: 300000,
-    cacheTime: Infinity,
-    refetchOnMount: false,
-    refetchOnWindowFocus: false,
-    onError: (error) => {
-      toast.error("Gagal memuat shelter", {
-        description: error?.message || "Terjadi kesalahan",
-      });
-    },
-  });
-
-  const shelter = useMemo(() => {
-    if (data?.statusCode === 200 && data?.details?.code === 200) {
-      return data.details.data;
-    }
-    return data?.details;
-  }, [data]);
-
-  return {
-    shelter,
-    isLoading,
-    isPending,
-    refetch,
-  };
-}
-
-// ============ SHELTER PROFILE QUERIES ============
-export function useGetShelterProfile() {
+// ============ USER PROFILE QUERIES ============
+export function useGetUserProfile() {
   const { data, isLoading, refetch } = useQuery({
-    queryKey: ["getShelterProfile"],
-    queryFn: () => getShelterProfile(),
+    queryKey: ["getUserProfile"],
+    queryFn: () => getUserProfile(),
     retry: false,
     staleTime: 300000,
     cacheTime: Infinity,
     refetchOnWindowFocus: false,
     onError: (error) => {
-      toast.error("Gagal memuat profil shelter", {
+      toast.error("Gagal memuat profil", {
         description: error?.message || "Terjadi kesalahan",
       });
     },
@@ -73,11 +40,11 @@ export function useGetShelterProfile() {
   };
 }
 
-// ============ SHELTER ORDERS QUERIES ============
-export function useGetShelterOrders() {
+// ============ USER ORDERS QUERIES ============
+export function useGetUserOrders() {
   const { data, isLoading, refetch } = useQuery({
-    queryKey: ["getShelterOrders"],
-    queryFn: () => getShelterOrders(),
+    queryKey: ["getUserOrders"],
+    queryFn: () => getUserOrders(),
     retry: false,
     staleTime: 300000,
     cacheTime: Infinity,
@@ -105,42 +72,48 @@ export function useGetShelterOrders() {
   };
 }
 
-// ============ SHELTER MUTATIONS ============
-export function useCreateShelterMutation({ successAction }) {
-  const queryClient = useQueryClient();
-
-  const mutation = useMutation({
-    mutationFn: ({ payload }) => createShelter({ body: payload }),
-    onSuccess: (data) => {
-      if (data?.statusCode === 201 || data?.details?.code === 201) {
-        toast.success(data?.details?.message || "Shelter berhasil dibuat");
-        queryClient.invalidateQueries({ queryKey: ["getShelter"] });
-        successAction?.();
-      } else {
-        toast.error("Gagal membuat shelter", {
-          description: data?.details?.message || data?.message,
-        });
-      }
-    },
+// ============ USER FAVORITES QUERIES ============
+export function useGetUserFavorites() {
+  const { data, isLoading, refetch } = useQuery({
+    queryKey: ["getUserFavorites"],
+    queryFn: () => getUserFavorites(),
+    retry: false,
+    staleTime: 300000,
+    cacheTime: Infinity,
+    refetchOnWindowFocus: false,
     onError: (error) => {
-      toast.error("Gagal membuat shelter", {
+      toast.error("Gagal memuat favorit", {
         description: error?.message || "Terjadi kesalahan",
       });
     },
   });
 
-  return mutation;
+  const favorites = useMemo(() => {
+    const payload = data?.details;
+    if (!payload) return [];
+    if (Array.isArray(payload)) return payload;
+    if (Array.isArray(payload.data)) return payload.data;
+    if (Array.isArray(payload.items)) return payload.items;
+    return [];
+  }, [data]);
+
+  return {
+    favorites,
+    isLoading,
+    refetch,
+  };
 }
 
-export function useUpdateShelterProfileMutation({ successAction }) {
+// ============ USER PROFILE MUTATIONS ============
+export function useUpdateUserProfileMutation({ successAction }) {
   const queryClient = useQueryClient();
 
   const mutation = useMutation({
-    mutationFn: ({ payload }) => updateShelterProfile({ body: payload }),
+    mutationFn: ({ payload }) => updateUserProfile({ body: payload }),
     onSuccess: (data) => {
       if (data?.statusCode === 200) {
         toast.success(data?.message || "Profil berhasil diperbarui");
-        queryClient.invalidateQueries({ queryKey: ["getShelterProfile"] });
+        queryClient.invalidateQueries({ queryKey: ["getUserProfile"] });
         successAction?.();
       } else {
         toast.error("Gagal memperbarui profil", {
@@ -158,68 +131,16 @@ export function useUpdateShelterProfileMutation({ successAction }) {
   return mutation;
 }
 
-// ============ ORDER MUTATIONS ============
-export function useConfirmOrderMutation({ successAction }) {
+// ============ USER ORDER MUTATIONS ============
+export function useCreateUserOrderMutation({ successAction }) {
   const queryClient = useQueryClient();
 
   const mutation = useMutation({
-    mutationFn: ({ id, payload }) => confirmOrder({ id, body: payload }),
-    onSuccess: (data) => {
-      if (data?.statusCode === 200) {
-        toast.success(data?.message || "Pesanan berhasil dikonfirmasi");
-        queryClient.invalidateQueries({ queryKey: ["getShelterOrders"] });
-        successAction?.();
-      } else {
-        toast.error("Gagal mengkonfirmasi pesanan", {
-          description: data?.message || "Terjadi kesalahan",
-        });
-      }
-    },
-    onError: (error) => {
-      toast.error("Gagal mengkonfirmasi pesanan", {
-        description: error?.message || "Terjadi kesalahan",
-      });
-    },
-  });
-
-  return mutation;
-}
-
-export function useFillOrderFormMutation({ successAction }) {
-  const queryClient = useQueryClient();
-
-  const mutation = useMutation({
-    mutationFn: ({ id, payload }) => fillOrderForm({ id, body: payload }),
-    onSuccess: (data) => {
-      if (data?.statusCode === 200) {
-        toast.success(data?.message || "Form pesanan berhasil diisi");
-        queryClient.invalidateQueries({ queryKey: ["getShelterOrders"] });
-        successAction?.();
-      } else {
-        toast.error("Gagal mengisi form pesanan", {
-          description: data?.message || "Terjadi kesalahan",
-        });
-      }
-    },
-    onError: (error) => {
-      toast.error("Gagal mengisi form pesanan", {
-        description: error?.message || "Terjadi kesalahan",
-      });
-    },
-  });
-
-  return mutation;
-}
-
-export function useCreateOrderMutation({ successAction }) {
-  const queryClient = useQueryClient();
-
-  const mutation = useMutation({
-    mutationFn: ({ id }) => createOrder({ id }),
+    mutationFn: ({ id }) => createUserOrder({ id }),
     onSuccess: (data) => {
       if (data?.statusCode === 201) {
         toast.success(data?.message || "Pesanan berhasil dibuat");
-        queryClient.invalidateQueries({ queryKey: ["getShelterOrders"] });
+        queryClient.invalidateQueries({ queryKey: ["getUserOrders"] });
         successAction?.();
       } else {
         toast.error("Gagal membuat pesanan", {
@@ -237,10 +158,89 @@ export function useCreateOrderMutation({ successAction }) {
   return mutation;
 }
 
-// ============ AUTH MUTATIONS ============
-export function useRegisterShelterMutation({ successAction }) {
+export function useFillUserOrderFormMutation({ successAction }) {
+  const queryClient = useQueryClient();
+
   const mutation = useMutation({
-    mutationFn: ({ payload }) => registerShelter({ body: payload }),
+    mutationFn: ({ id, payload }) => fillUserOrderForm({ id, body: payload }),
+    onSuccess: (data) => {
+      if (data?.statusCode === 200) {
+        toast.success(data?.message || "Form pesanan berhasil diisi");
+        queryClient.invalidateQueries({ queryKey: ["getUserOrders"] });
+        successAction?.();
+      } else {
+        toast.error("Gagal mengisi form pesanan", {
+          description: data?.message || "Terjadi kesalahan",
+        });
+      }
+    },
+    onError: (error) => {
+      toast.error("Gagal mengisi form pesanan", {
+        description: error?.message || "Terjadi kesalahan",
+      });
+    },
+  });
+
+  return mutation;
+}
+
+// ============ FAVORITES MUTATIONS ============
+export function useAddToFavoritesMutation({ successAction }) {
+  const queryClient = useQueryClient();
+
+  const mutation = useMutation({
+    mutationFn: ({ animalId }) => addToFavorites({ animalId }),
+    onSuccess: (data) => {
+      if (data?.statusCode === 201) {
+        toast.success(data?.message || "Hewan ditambahkan ke favorit");
+        queryClient.invalidateQueries({ queryKey: ["getUserFavorites"] });
+        successAction?.();
+      } else {
+        toast.error("Gagal menambahkan favorit", {
+          description: data?.message || "Terjadi kesalahan",
+        });
+      }
+    },
+    onError: (error) => {
+      toast.error("Gagal menambahkan favorit", {
+        description: error?.message || "Terjadi kesalahan",
+      });
+    },
+  });
+
+  return mutation;
+}
+
+export function useRemoveFromFavoritesMutation({ successAction }) {
+  const queryClient = useQueryClient();
+
+  const mutation = useMutation({
+    mutationFn: ({ animalId }) => removeFromFavorites({ animalId }),
+    onSuccess: (data) => {
+      if (data?.statusCode === 200) {
+        toast.success(data?.message || "Hewan dihapus dari favorit");
+        queryClient.invalidateQueries({ queryKey: ["getUserFavorites"] });
+        successAction?.();
+      } else {
+        toast.error("Gagal menghapus favorit", {
+          description: data?.message || "Terjadi kesalahan",
+        });
+      }
+    },
+    onError: (error) => {
+      toast.error("Gagal menghapus favorit", {
+        description: error?.message || "Terjadi kesalahan",
+      });
+    },
+  });
+
+  return mutation;
+}
+
+// ============ AUTH MUTATIONS ============
+export function useRegisterUserMutation({ successAction }) {
+  const mutation = useMutation({
+    mutationFn: ({ payload }) => registerUser({ body: payload }),
     onSuccess: (data) => {
       if (data?.statusCode === 201) {
         toast.success(data?.message || "Registrasi berhasil");
@@ -261,9 +261,9 @@ export function useRegisterShelterMutation({ successAction }) {
   return mutation;
 }
 
-export function useLoginShelterMutation({ successAction }) {
+export function useLoginUserMutation({ successAction }) {
   const mutation = useMutation({
-    mutationFn: ({ payload }) => loginShelter({ body: payload }),
+    mutationFn: ({ payload }) => loginUser({ body: payload }),
     onSuccess: (data) => {
       if (data?.statusCode === 200) {
         toast.success(data?.message || "Login berhasil");
@@ -292,9 +292,9 @@ export function useLoginShelterMutation({ successAction }) {
   return mutation;
 }
 
-export function useForgotPasswordShelterMutation({ successAction }) {
+export function useForgotPasswordUserMutation({ successAction }) {
   const mutation = useMutation({
-    mutationFn: ({ payload }) => forgotPasswordShelter({ body: payload }),
+    mutationFn: ({ payload }) => forgotPasswordUser({ body: payload }),
     onSuccess: (data) => {
       if (data?.statusCode === 200) {
         toast.success(data?.message || "Email reset telah dikirim");

@@ -8,7 +8,7 @@ import {
   Row,
   Text,
 } from "@/components/shared/custom_widget";
-import { dummyPembayaran } from "@/data/dummy/data_dummy";
+import { useGetShelterOrders } from "@/hooks/pesanan.hooks";
 import { ImageAssets } from "@/common/constant/assets";
 import { formatRupiah } from "@/utils/helper";
 import { ChevronLeft, ChevronRight } from "lucide-react";
@@ -24,13 +24,15 @@ export default function PembayaranPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const postPerPage = 6;
 
-  const totalPosts = dummyPembayaran.length;
-  const totalPages = Math.ceil(totalPosts / postPerPage);
+  const { orders, isLoading } = useGetShelterOrders();
+
+  const totalPosts = orders.length;
+  const totalPages = Math.max(1, Math.ceil(totalPosts / postPerPage));
 
   const endIndex = currentPage * postPerPage;
   const startIndex = endIndex - postPerPage;
   const currentEndIndex = Math.min(endIndex, totalPosts);
-  const currentPosts = dummyPembayaran.slice(startIndex, endIndex);
+  const currentPosts = orders.slice(startIndex, endIndex);
 
   const paginate = (page) => setCurrentPage(page);
 
@@ -53,71 +55,79 @@ export default function PembayaranPage() {
 
         {/* Rows */}
         <div className="divide-y">
-          {currentPosts.map((item) => (
-            <div
-              key={item.id}
-              className="my-4 grid grid-cols-[1.6fr_0.8fr_0.8fr_0.9fr_0.9fr] px-6 py-2 items-center bg-white rounded-4xl"
-            >
-              {/* Daftar Hewan */}
-              <div className="flex items-center gap-3 min-w-0">
-                <div className="relative w-8 h-8 rounded-full overflow-hidden flex-shrink-0">
-                  <Image
-                    src={item.animalImage}
-                    alt={item.animalName}
-                    fill
-                    className="object-cover"
-                  />
+          {isLoading ? (
+            <div className="px-6 py-10 text-center text-sm text-gray-500">Memuat data pembayaran...</div>
+          ) : currentPosts.length === 0 ? (
+            <div className="px-6 py-10 text-center text-sm text-gray-500">Belum ada pembayaran</div>
+          ) : (
+            currentPosts.map((item) => (
+              <div
+                key={item.id}
+                className="my-4 grid grid-cols-[1.6fr_0.8fr_0.8fr_0.9fr_0.9fr] px-6 py-2 items-center bg-white rounded-4xl"
+              >
+                {/* Daftar Hewan */}
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="relative w-8 h-8 rounded-full overflow-hidden flex-shrink-0">
+                    <Image
+                      src={item.animalImage || item.image || "/images/placeholder.png"}
+                      alt={item.animalName || item.namaHewan || "Animal"}
+                      fill
+                      className="object-cover"
+                    />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="font-semibold text-xs text-gray-900 leading-5 truncate">
+                      {item.animalName || item.namaHewan}
+                    </p>
+                    <p className="text-xs text-gray-500 truncate">
+                      {item.animalBreed || item.kategori}
+                    </p>
+                  </div>
                 </div>
-                <div className="min-w-0">
-                  <p className="font-semibold text-xs text-gray-900 leading-5 truncate">
-                    {item.animalName}
+
+                {/* Harga */}
+                <div className="text-xs text-gray-900">
+                  {formatRupiah(item.price || item.harga || 0)}
+                </div>
+
+                {/* Pembayaran (Payment Method) */}
+                <div className="flex items-center gap-2">
+                  {paymentLogoMap[item.metodePembayaran?.toLowerCase()] && (
+                    <Image
+                      src={paymentLogoMap[item.metodePembayaran?.toLowerCase()]}
+                      alt={item.metodePembayaran}
+                      width={20}
+                      height={20}
+                    />
+                  )}
+                  <span className="text-xs text-gray-900">{item.metodePembayaran || "-"}</span>
+                </div>
+
+                {/* User */}
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="relative w-6 h-6 rounded-full overflow-hidden flex-shrink-0">
+                    <Image
+                      src={item.userAvatar || item.adopter?.avatar || "/images/placeholder.png"}
+                      alt={item.userName || item.adopter?.name || "User"}
+                      fill
+                      className="object-cover"
+                    />
+                  </div>
+                  <p className="text-xs text-gray-900 truncate">
+                    {item.userName || item.adopter?.name}
                   </p>
-                  <p className="text-xs text-gray-500 truncate">
-                    {item.animalBreed}
-                  </p>
                 </div>
-              </div>
 
-              {/* Harga */}
-              <div className="text-xs text-gray-900">
-                {formatRupiah(item.price)}
+                {/* Waktu Masuk */}
+                <div className="text-xs text-gray-900">{item.timeInText || item.createdAt || "-"}</div>
               </div>
-
-              {/* Pembayaran */}
-              <div className="flex items-center">
-                <Image
-                  src={paymentLogoMap[item.paymentMethod]}
-                  alt={item.paymentMethod}
-                  width={item.paymentMethod == "qris" ? 40 : 50}
-                  height={item.paymentMethod == "qris" ? 40 : 50}
-                  className="object-contain"
-                />
-              </div>
-
-              {/* User */}
-              <div className="flex items-center gap-3 min-w-0">
-                <div className="relative w-8 h-8 rounded-full overflow-hidden flex-shrink-0">
-                  <Image
-                    src={item.userAvatar}
-                    alt={item.userName}
-                    fill
-                    className="object-cover"
-                  />
-                </div>
-                <p className="text-xs text-gray-900 truncate">
-                  {item.userName}
-                </p>
-              </div>
-
-              {/* Waktu */}
-              <div className="text-xs text-gray-900">{item.timeInText}</div>
-            </div>
-          ))}
+            ))
+          )}
         </div>
       </Container>
 
-      {/* PAGINATION (tetap pakai widget kamu) */}
-      <Row className="gap-x-2" mainAxisAlignment="between">
+      {/* Pagination */}
+      <Row className="gap-x-2 my-4" mainAxisAlignment="between">
         <button
           onClick={() => paginate(currentPage - 1)}
           disabled={currentPage === 1}

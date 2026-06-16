@@ -16,6 +16,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Trash2 } from "lucide-react";
 import { toast } from "sonner";
+import { useGetShelterProfile, useUpdateShelterProfileMutation } from "@/hooks/shelter.hooks";
 import {
   Select,
   SelectContent,
@@ -26,25 +27,38 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-const shelterData = {
-  shleterName: "RAKA HOME",
-  ownerName: "GavinJAWA",
-  email: "GavinA@gmail.com",
-  noTelephone: "+6282170677488",
-  metodePembayaran: "mandiri",
-  negara: "indonesia",
-  jalan: "diponegoro",
-  zipCode: "12345",
-};
-
 export default function ProfileShelterPage() {
-  const [shelter, setShelter] = useState(shelterData);
-  const [shelterDraft, setShelterDraft] = useState(shelterData);
+  const { profile, isLoading: profileLoading, refetch } = useGetShelterProfile();
+  const updateProfileMutation = useUpdateShelterProfileMutation({
+    successAction: () => {
+      refetch();
+    },
+  });
+
+  const [shelter, setShelter] = useState({});
+  const [shelterDraft, setShelterDraft] = useState({});
   const [isEditing, setIsEditing] = useState(false);
 
   const [previewUrl, setPreviewUrl] = useState("");
   const [file, setFile] = useState(null);
   const [errors, setErrors] = useState({});
+
+  // Initialize shelter data from profile
+  useEffect(() => {
+    if (profile) {
+      const data = {
+        shleterName: profile.namaShelter || profile.shelterName || "",
+        ownerName: profile.namaPemilik || profile.ownerName || "",
+        email: profile.email || "",
+        noTelephone: profile.noTelepon || profile.phone || "",
+        metodePembayaran: profile.metodePembayaran || profile.paymentMethod || "",
+        negara: profile.negara || profile.country || "",
+        jalan: profile.jalan || profile.street || "",
+        zipCode: profile.zipCode || profile.postalCode || "",
+      };
+      setShelter(data);
+    }
+  }, [profile]);
 
   useEffect(() => {
     return () => {
@@ -112,12 +126,27 @@ export default function ProfileShelterPage() {
   };
 
   const handleSave = () => {
-    // TODO: panggil API update shelter + upload file di sini
-    // contoh: await updateShelterApi(shelter, file)
+    const payload = new FormData();
+    payload.append("namaShelter", shelter.shleterName);
+    payload.append("namaPemilik", shelter.ownerName);
+    payload.append("email", shelter.email);
+    payload.append("noTelepon", shelter.noTelephone);
+    payload.append("metodePembayaran", shelter.metodePembayaran);
+    payload.append("negara", shelter.negara);
+    payload.append("jalan", shelter.jalan);
+    payload.append("zipCode", shelter.zipCode);
+    
+    if (file) {
+      payload.append("foto", file);
+    }
 
-    toast.success("Shelter berhasil diupdate");
+    updateProfileMutation.mutate({ payload });
     setIsEditing(false);
   };
+
+  if (profileLoading) {
+    return <div className="p-8 text-center">Memuat profil shelter...</div>;
+  }
 
   return (
     <Container className="bg-white border border-gray-200 rounded-lg">
@@ -160,6 +189,13 @@ export default function ProfileShelterPage() {
                     fill
                     className="object-cover"
                   />
+                ) : profile?.foto ? (
+                  <Image
+                    src={profile.foto}
+                    alt="Shelter Photo"
+                    fill
+                    className="object-cover"
+                  />
                 ) : (
                   <div className="px-3">
                     <Image
@@ -185,7 +221,7 @@ export default function ProfileShelterPage() {
                   className={`absolute inset-0 bg-black/0 group-hover:bg-black/40 transition
                     flex items-center justify-center
                     ${
-                      isEditing && previewUrl
+                      isEditing && (previewUrl || profile?.foto)
                         ? "opacity-0 group-hover:opacity-100"
                         : "opacity-0"
                     }
@@ -196,7 +232,7 @@ export default function ProfileShelterPage() {
               </div>
 
               {/* Trash button (hapus) - hanya saat edit */}
-              {previewUrl && isEditing && (
+              {(previewUrl || profile?.foto) && isEditing && (
                 <button
                   type="button"
                   onClick={(e) => {
@@ -392,15 +428,17 @@ export default function ProfileShelterPage() {
                   <Button
                     type="button"
                     onClick={handleSave}
-                    className="h-[40px] bg-[#FF8D28] hover:bg-[#FBA81F] cursor-pointer rounded-sm"
+                    disabled={updateProfileMutation.isPending}
+                    className="h-[40px] bg-[#FF8D28] hover:bg-[#FBA81F] cursor-pointer rounded-sm disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    Simpan
+                    {updateProfileMutation.isPending ? "Menyimpan..." : "Simpan"}
                   </Button>
                   <Button
                     type="button"
                     variant="outline"
                     onClick={handleCancelEdit}
-                    className="h-[40px] rounded-sm"
+                    disabled={updateProfileMutation.isPending}
+                    className="h-[40px] rounded-sm disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     Batal
                   </Button>

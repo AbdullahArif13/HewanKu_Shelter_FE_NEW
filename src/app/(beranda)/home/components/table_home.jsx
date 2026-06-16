@@ -9,21 +9,32 @@ import {
   Text,
   SizedBox,
 } from "@/components/shared/custom_widget";
-import { dummyAnimal } from "@/data/dummy/data_dummy";
-import { ChevronLeft, ChevronRight, Check, X } from "lucide-react";
-import { ImageAssets, IconAssets } from "@/common/constant/assets";
+import { useNavigator } from "@/utils/helper";
+import { useGetShelterAnimals, useDeleteAnimalMutation } from "@/hooks/animal.hooks";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import { IconAssets } from "@/common/constant/assets";
 import { formatRupiah } from "@/utils/helper";
 
 export default function TableHome() {
   const [currentPage, setCurrentPage] = useState(1);
+  const [selectedDeleteId, setSelectedDeleteId] = useState(null);
+  const nav = useNavigator();
+
+  const { animals, isLoading, refetch } = useGetShelterAnimals();
+  const { deleteAnimalMutation } = useDeleteAnimalMutation({
+    successAction: () => {
+      refetch();
+      setSelectedDeleteId(null);
+    },
+  });
+
   const postPerPage = 4;
-
-  const totalPosts = dummyAnimal.length;
-  const totalPages = Math.ceil(totalPosts / postPerPage);
-
+  const totalPosts = animals.length;
+  const totalPages = Math.max(1, Math.ceil(totalPosts / postPerPage));
   const endIndex = currentPage * postPerPage;
   const startIndex = endIndex - postPerPage;
-  const currentPosts = dummyAnimal.slice(startIndex, endIndex);
+  const currentPosts = animals.slice(startIndex, endIndex);
 
   const paginate = (page) => setCurrentPage(page);
 
@@ -43,57 +54,92 @@ export default function TableHome() {
         </div>
 
         <div className="divide-y">
-          {currentPosts.map((item) => (
-            <div
-              key={item.id}
-              className="my-4 grid grid-cols-[1.6fr_0.8fr_0.8fr_1.0fr_0.5fr_0.5fr] px-6 py-3 items-center bg-white rounded-4xl"
-            >
-              <div className="flex items-center gap-3 min-w-0">
-                <div className="relative w-8 h-8 rounded-full overflow-hidden flex-shrink-0">
+          {isLoading ? (
+            <div className="px-6 py-10 text-center text-sm text-gray-500">Memuat daftar hewan...</div>
+          ) : currentPosts.length === 0 ? (
+            <div className="px-6 py-10 text-center text-sm text-gray-500">Belum ada hewan di shelter.</div>
+          ) : (
+            currentPosts.map((item) => (
+              <div
+                key={item.id}
+                className="my-4 grid grid-cols-[1.6fr_0.8fr_0.8fr_1.0fr_0.5fr_0.5fr] px-6 py-3 items-center bg-white rounded-4xl"
+              >
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="relative w-8 h-8 rounded-full overflow-hidden flex-shrink-0">
+                    <Image
+                      src={item.animalImage || item.image || "/images/shelter_placeholder.png"}
+                      alt={item.animalName || item.namaHewan}
+                      fill
+                      className="object-cover"
+                    />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="font-semibold text-xs text-gray-900 leading-5 truncate">
+                      {item.animalName || item.namaHewan}
+                    </p>
+                    <p className="text-xs text-gray-500 truncate">
+                      {item.animalBreed || item.kategori}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="text-xs text-gray-900">
+                  {formatRupiah(item.price || item.harga || 0)}
+                </div>
+                <div className="text-xs text-gray-900">{item.status || "-"}</div>
+
+                <div className="text-xs text-gray-900">{item.timeInText || item.updatedAt || "-"}</div>
+
+                <button
+                  type="button"
+                  onClick={() => nav.push(`/home/edit_hewan/${item.id}`)}
+                  className="flex items-center justify-center rounded-full w-9 h-9 bg-orange-50 hover:bg-orange-100 transition"
+                >
                   <Image
-                    src={item.animalImage}
-                    alt={item.animalName}
-                    fill
-                    className="object-cover"
+                    src={IconAssets.edit}
+                    alt="Edit"
+                    width={20}
+                    height={20}
+                    className="object-contain"
                   />
-                </div>
-                <div className="min-w-0">
-                  <p className="font-semibold text-xs text-gray-900 leading-5 truncate">
-                    {item.animalName}
-                  </p>
-                  <p className="text-xs text-gray-500 truncate">
-                    {item.animalBreed}
-                  </p>
-                </div>
+                </button>
+
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <button
+                      type="button"
+                      className="flex items-center justify-center rounded-full w-9 h-9 bg-red-50 hover:bg-red-100 transition"
+                    >
+                      <Image
+                        src={IconAssets.delete}
+                        alt="Delete"
+                        width={20}
+                        height={20}
+                        className="object-contain"
+                      />
+                    </button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Hapus Hewan</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Apakah Anda yakin ingin menghapus hewan ini? Tindakan ini tidak dapat dibatalkan.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Batal</AlertDialogCancel>
+                      <AlertDialogAction
+                        onClick={() => deleteAnimalMutation.mutate({ id: item.id })}
+                        className="bg-red-600 text-white hover:bg-red-700"
+                      >
+                        Hapus
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
               </div>
-
-              <div className="text-xs text-gray-900">
-                {formatRupiah(item.price)}
-              </div>
-              <div className="text-xs text-gray-900">{item.status}</div>
-
-              <div className="text-xs text-gray-900">{item.timeInText}</div>
-
-              <button className="cursor-pointer">
-                <Image
-                  src={IconAssets.edit}
-                  alt={item.id}
-                  height={25}
-                  width={25}
-                  className="object-cover"
-                />
-              </button>
-              <button className="cursor-pointer">
-                <Image
-                  src={IconAssets.delete}
-                  alt={item.id}
-                  height={25}
-                  width={25}
-                  className="object-cover"
-                />
-              </button>
-            </div>
-          ))}
+            ))
+          )}
         </div>
       </Container>
       <Row className="gap-x-2 my-2" mainAxisAlignment="between">
