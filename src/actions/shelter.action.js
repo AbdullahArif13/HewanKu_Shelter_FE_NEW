@@ -2,11 +2,11 @@
 
 import request, { handleAxiosError } from "@/utils/baseRequest";
 
-export async function getShelter({ id }) {
+export async function getShelter() {
   try {
     const response = await request({
       method: "get",
-      url: `/shelter/view/${id}`,
+      url: "/shelter/view",
     });
     return {
       message: "Shelter successfully retrieved",
@@ -18,11 +18,11 @@ export async function getShelter({ id }) {
   }
 }
 
-export async function createShelter({ id, body }) {
+export async function createShelter({ body }) {
   try {
     const res = await request({
       method: "post",
-      url: `/shelter/create/${id}`,
+      url: "/shelter/create",
       data: body,
     });
     return {

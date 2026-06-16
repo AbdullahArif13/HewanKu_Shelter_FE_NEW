@@ -45,7 +45,7 @@ export default function SidebarBeranda() {
     pathname === href || pathname?.startsWith(href + "/");
 
   const handleNavigate = (href) => {
-    if (!hasShelter) return; // 🔒 LOCK NAVIGATION
+    // allow navigation regardless of shelter state so sidebar items are clickable
     router.push(href);
   };
 
@@ -56,8 +56,14 @@ export default function SidebarBeranda() {
 
   if (authLoading || isLoading) return null;
 
+  // Default active color can be overridden with CSS variable `--sidebar-active-color`.
+  // Example override: `:root { --sidebar-active-color: #0ea5e9; }` or set inline style on a parent element.
+  const activeColorVar = "var(--sidebar-active-color, #FF8D28)";
+
   return (
-    <Container className="w-[88px] min-h-screen bg-white flex flex-col items-center py-6">
+    <Container
+      className="w-[88px] min-h-screen bg-white flex flex-col items-center py-6"
+    >
       {/* MENU */}
       <Column className="flex flex-col gap-8 flex-1">
         {navItems.map((item) => {
@@ -67,23 +73,28 @@ export default function SidebarBeranda() {
             <button
               key={item.href}
               onClick={() => handleNavigate(item.href)}
-              disabled={!hasShelter}
+              // clickable even if no shelter; visual still shows disabled look
               className={cn(
-                "flex flex-col items-center gap-1 transition",
-                active && hasShelter ? "text-orange-500" : "text-gray-500",
-                !hasShelter
-                  ? "opacity-40 cursor-not-allowed"
-                  : "hover:text-gray-700 cursor-pointer"
+                "relative flex flex-col items-center gap-1 transition w-full",
+                !hasShelter ? "opacity-70" : "hover:text-gray-700 cursor-pointer"
               )}
+              aria-current={active ? "true" : undefined}
+              style={active ? { color: activeColorVar } : undefined}
             >
-              <Image
-                src={active && hasShelter ? item.iconActive : item.icon}
-                alt={item.label}
-                width={22}
-                height={22}
-                className="object-cover"
-              />
-              <span className="text-[11px] font-medium">{item.label}</span>
+              <div className="flex flex-col items-center gap-1 w-full">
+                <div className="pt-1">
+                  <Image
+                    src={active ? item.iconActive : item.icon}
+                    alt={item.label}
+                    width={active ? 26 : 22}
+                    height={active ? 26 : 22}
+                    className="object-cover"
+                  />
+                </div>
+                <span className={cn(active ? "text-[11px] font-semibold" : "text-[11px] font-medium")}>
+                  {item.label}
+                </span>
+              </div>
             </button>
           );
         })}

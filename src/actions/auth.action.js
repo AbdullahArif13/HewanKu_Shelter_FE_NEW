@@ -4,7 +4,7 @@ import request, { handleAxiosError } from "@/utils/baseRequest";
 
 export async function login({ body }) {
   try {
-    const res = await request.post("/shelter/login", body);
+    const res = await request.post("/shelter/auth/login", body);
     return res.data;
   } catch (error) {
     return handleAxiosError(error);
@@ -19,7 +19,7 @@ export async function logout() {
 
 export async function register({ body }) {
   try {
-    const res = await request.post("/shelter/register", body);
+    const res = await request.post("/shelter/auth/register", body);
     return res.data;
   } catch (error) {
     return handleAxiosError(error);
@@ -28,7 +28,7 @@ export async function register({ body }) {
 
 export async function forgotPassword({ body }) {
   try {
-    const res = await request.post("/shelter/forgot", body);
+    const res = await request.post("/shelter/auth/forgot", body);
     return res.data;
   } catch (error) {
     return handleAxiosError(error);
@@ -37,7 +37,7 @@ export async function forgotPassword({ body }) {
 
 export async function verifyOTP({ body }) {
   try {
-    const res = await request.post("/shelter/verify", body);
+    const res = await request.post("/shelter/auth/verify", body);
     return res.data;
   } catch (error) {
     return handleAxiosError(error);
@@ -46,7 +46,7 @@ export async function verifyOTP({ body }) {
 
 export async function changePass({ body }) {
   try {
-    const res = await request.post("/shelter/change", body);
+    const res = await request.post("/shelter/auth/change", body);
     return res.data;
   } catch (error) {
     return handleAxiosError(error);

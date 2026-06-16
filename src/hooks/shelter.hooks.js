@@ -42,7 +42,7 @@ export function useAddShelterMutation({ successAction }) {
   const queryClient = useQueryClient();
 
   const addShelterMutation = useMutation({
-    mutationFn: ({ id, payload }) => createShelter({ id, body: payload }),
+    mutationFn: ({ payload }) => createShelter({ body: payload }),
 
     onSuccess: (data) => {
       if (data?.details?.code === 201) {

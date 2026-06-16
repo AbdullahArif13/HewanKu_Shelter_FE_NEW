@@ -11,6 +11,15 @@ export const axiosBaseConfig = {
 
 const request = axios.create(axiosBaseConfig);
 
+request.interceptors.request.use((config) => {
+  if (config.data instanceof FormData) {
+    if (config.headers && config.headers["Content-Type"]) {
+      delete config.headers["Content-Type"];
+    }
+  }
+  return config;
+});
+
 request.interceptors.response.use(
   (response) => response,
   (error) => {
