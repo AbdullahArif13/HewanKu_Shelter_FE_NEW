@@ -62,7 +62,7 @@ export default function PembayaranPage() {
           ) : (
             currentPosts.map((item) => (
               <div
-                key={item.id}
+                key={item.id || item._id}
                 className="my-4 grid grid-cols-[1.6fr_0.8fr_0.8fr_0.9fr_0.9fr] px-6 py-2 items-center bg-white rounded-4xl"
               >
                 {/* Daftar Hewan */}

@@ -59,11 +59,13 @@ export default function TableHome() {
           ) : currentPosts.length === 0 ? (
             <div className="px-6 py-10 text-center text-sm text-gray-500">Belum ada hewan di shelter.</div>
           ) : (
-            currentPosts.map((item) => (
-              <div
-                key={item.id}
-                className="my-4 grid grid-cols-[1.6fr_0.8fr_0.8fr_1.0fr_0.5fr_0.5fr] px-6 py-3 items-center bg-white rounded-4xl"
-              >
+            currentPosts.map((item) => {
+              const animalId = item.id || item._id;
+              return (
+                <div
+                  key={animalId}
+                  className="my-4 grid grid-cols-[1.6fr_0.8fr_0.8fr_1.0fr_0.5fr_0.5fr] px-6 py-3 items-center bg-white rounded-4xl"
+                >
                 <div className="flex items-center gap-3 min-w-0">
                   <div className="relative w-8 h-8 rounded-full overflow-hidden flex-shrink-0">
                     <Image
@@ -92,7 +94,7 @@ export default function TableHome() {
 
                 <button
                   type="button"
-                  onClick={() => nav.push(`/home/edit_hewan/${item.id}`)}
+                  onClick={() => nav.push(`/home/edit_hewan/${animalId}`)}
                   className="flex items-center justify-center rounded-full w-9 h-9 bg-orange-50 hover:bg-orange-100 transition"
                 >
                   <Image
@@ -129,7 +131,7 @@ export default function TableHome() {
                     <AlertDialogFooter>
                       <AlertDialogCancel>Batal</AlertDialogCancel>
                       <AlertDialogAction
-                        onClick={() => deleteAnimalMutation.mutate({ id: item.id })}
+                        onClick={() => deleteAnimalMutation.mutate({ id: animalId })}
                         className="bg-red-600 text-white hover:bg-red-700"
                       >
                         Hapus
@@ -138,7 +140,8 @@ export default function TableHome() {
                   </AlertDialogContent>
                 </AlertDialog>
               </div>
-            ))
+              );
+            })
           )}
         </div>
       </Container>

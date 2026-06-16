@@ -15,9 +15,6 @@ import { ChevronLeft, ChevronRight, Check, X } from "lucide-react";
 
 export default function TableFormStatus() {
   const [currentPage, setCurrentPage] = useState(1);
-  const [selectedOrderId, setSelectedOrderId] = useState(null);
-  const [confirmAction, setConfirmAction] = useState(null); // "DITERIMA" or "DITOLAK"
-  
   const postPerPage = 4;
 
   const { orders, isLoading, refetch } = useGetShelterOrders();
@@ -65,7 +62,7 @@ export default function TableFormStatus() {
           ) : (
             currentPosts.map((item) => (
               <div
-                key={item.id}
+                key={item.id || item._id}
                 className="my-4 grid grid-cols-[1.6fr_0.8fr_0.8fr_0.9fr_0.5fr_0.5fr] px-6 py-3 items-center bg-white rounded-4xl"
               >
                 {/* Daftar Hewan */}
@@ -128,7 +125,7 @@ export default function TableFormStatus() {
                     <AlertDialogFooter>
                       <AlertDialogCancel>Batal</AlertDialogCancel>
                       <AlertDialogAction
-                        onClick={() => handleConfirmOrder(item.id, "DITERIMA")}
+                        onClick={() => handleConfirmOrder(item.id || item._id, "DITERIMA")}
                         disabled={isConfirming}
                         className="bg-green-600 text-white hover:bg-green-700"
                       >
@@ -155,7 +152,7 @@ export default function TableFormStatus() {
                     <AlertDialogFooter>
                       <AlertDialogCancel>Batal</AlertDialogCancel>
                       <AlertDialogAction
-                        onClick={() => handleConfirmOrder(item.id, "DITOLAK")}
+                        onClick={() => handleConfirmOrder(item.id || item._id, "DITOLAK")}
                         disabled={isConfirming}
                         className="bg-red-600 text-white hover:bg-red-700"
                       >

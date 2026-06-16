@@ -8,8 +8,18 @@ import {
   Text,
 } from "@/components/shared/custom_widget";
 import { ImageAssets, IconAssets } from "@/common/constant/assets";
+import { useGetShelterOrders } from "@/hooks/pesanan.hooks";
+
+function countStatus(orders = [], matcher) {
+  return orders.filter((order) => matcher(order.status)).length;
+}
 
 export default function HeaderFormStatus() {
+  const { orders, isLoading } = useGetShelterOrders();
+  const totalForms = orders.length;
+  const acceptedForms = countStatus(orders, (status) => /DITERIMA|ACCEPTED|APPROVED/i.test(status || ""));
+  const rejectedForms = countStatus(orders, (status) => /DITOLAK|REJECTED|REJECT/i.test(status || ""));
+
   return (
     <Row className="gap-5">
       <Container className="w-1/4 bg-white rounded-xl p-3">
@@ -23,7 +33,9 @@ export default function HeaderFormStatus() {
             />
           </Container>
           <div className="flex flex-col">
-            <Text className="font-semibold text-lg">24.000</Text>
+            <Text className="font-semibold text-lg">
+              {isLoading ? "..." : totalForms}
+            </Text>
             <Text className="text-xs text-[#68676E]">Form Masuk</Text>
           </div>
         </Row>
@@ -39,7 +51,9 @@ export default function HeaderFormStatus() {
             />
           </Container>
           <div className="flex flex-col">
-            <Text className="font-semibold text-lg">82.000</Text>
+            <Text className="font-semibold text-lg">
+              {isLoading ? "..." : acceptedForms}
+            </Text>
             <Text className="text-xs text-[#68676E]">Form Diterima</Text>
           </div>
         </Row>
@@ -55,7 +69,9 @@ export default function HeaderFormStatus() {
             />
           </Container>
           <div className="flex flex-col">
-            <Text className="font-semibold text-lg">89</Text>
+            <Text className="font-semibold text-lg">
+              {isLoading ? "..." : rejectedForms}
+            </Text>
             <Text className="text-xs text-[#68676E]">Form Ditolak</Text>
           </div>
         </Row>

@@ -18,6 +18,7 @@ export default function LoginPage() {
             alt="Logo"
             width={150}
             height={150}
+            className="w-[150px] h-[150px]"
           />
         </div>
 
@@ -39,8 +40,9 @@ export default function LoginPage() {
           src={ImageAssets.loginMockup}
           alt="loginMock"
           width={425}
-          height={0}
-          className="rounded-2xl object-cover"
+          height={500}
+          loading="eager"
+          className="rounded-2xl object-cover w-full h-auto"
         />
       </div>
     </div>

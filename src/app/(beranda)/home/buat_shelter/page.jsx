@@ -34,13 +34,11 @@ import { useCreateShelterMutation } from "@/hooks/shelter.hooks";
 
 const shelterData = {
   shelterName: "",
-  ownerName: "",
-  email: "",
-  noTelephone: "",
+  deskripsi: "",
   metodePembayaran: "",
-  negara: "",
-  jalan: "",
-  zipCode: "",
+  nomorRekening: "",
+  namaPemilikRekening: "",
+  alamatLengkap: "",
 };
 
 export default function BuatShelter() {
@@ -51,7 +49,7 @@ export default function BuatShelter() {
   const nav = useNavigator();
 
   const { user } = useAuth();
-  const { mutate: addShelterMutation } = useCreateShelterMutation({
+  const addShelterMutation = useCreateShelterMutation({
     successAction: () => {
       nav.replace("/home");
     },
@@ -104,31 +102,35 @@ export default function BuatShelter() {
       return;
     }
 
-    if (!shelter.shelterName || !shelter.ownerName || !shelter.email) {
-      toast.error("Lengkapi data shelter terlebih dahulu");
+    // Require all fields per backend spec
+    if (
+      !shelter.shelterName ||
+      !shelter.deskripsi ||
+      !shelter.metodePembayaran ||
+      !shelter.nomorRekening ||
+      !shelter.namaPemilikRekening ||
+      !shelter.alamatLengkap
+    ) {
+      toast.error("Lengkapi semua data shelter terlebih dahulu");
       return;
     }
+
 
     if (!file) {
-      toast.error("Upload foto shelter terlebih dahulu");
+      toast.error("Upload logo shelter terlebih dahulu");
       return;
     }
 
-    // payload sesuai backend kamu
-    const payload = {
-      namaShelter: shelter.shelterName,
-      namaOwner: shelter.ownerName,
-      email: shelter.email,
-      nomorHandphone: shelter.noTelephone,
-      metodePembayaran: shelter.metodePembayaran,
-      negara: shelter.negara,
-      jalan: shelter.jalan,
-      zipCode: shelter.zipCode,
-      // kalau backend butuh file, beda lagi (multipart/form-data)
-    };
+    const payload = new FormData();
+    payload.append("namaShelter", shelter.shelterName);
+    payload.append("logo", file);
+    payload.append("deskripsi", shelter.deskripsi);
+    payload.append("metodePembayaran", shelter.metodePembayaran);
+    payload.append("nomorRekening", shelter.nomorRekening);
+    payload.append("namaPemilikRekening", shelter.namaPemilikRekening);
+    payload.append("alamatLengkap", shelter.alamatLengkap);
 
     addShelterMutation.mutate({
-      id: user.id,
       payload,
     });
   };
@@ -150,7 +152,7 @@ export default function BuatShelter() {
               <div
                 {...getRootProps()}
                 onClick={open}
-                className={`w-32 h-32 rounded-full overflow-hidden border-2 cursor-pointer
+                className={`relative w-32 h-32 rounded-full overflow-hidden border-2 cursor-pointer
         flex items-center justify-center text-center select-none
         ${errors.file ? "border-red-500" : "border-gray-300"}
         ${isDragActive ? "bg-muted/50" : "bg-gray-50"}
@@ -234,32 +236,13 @@ export default function BuatShelter() {
               </div>
 
               <div className="grid w-full gap-2">
-                <Label htmlFor="ownerName">Nama Owner</Label>
+                <Label htmlFor="deskripsi">Deskripsi Singkat</Label>
                 <Input
-                  id="ownerName"
-                  value={shelter.ownerName}
-                  onChange={(e) => updateShelter("ownerName", e.target.value)}
+                  id="deskripsi"
+                  value={shelter.deskripsi}
+                  onChange={(e) => updateShelter("deskripsi", e.target.value)}
                   className="bg-white rounded-sm focus-visible:ring-[3px] focus-visible:ring-orange-500/20 focus-visible:border-orange-500"
-                />
-              </div>
-
-              <div className="grid w-full gap-2">
-                <Label htmlFor="noTelephone">Nomor Telephone</Label>
-                <Input
-                  id="noTelephone"
-                  value={shelter.noTelephone}
-                  onChange={(e) => updateShelter("noTelephone", e.target.value)}
-                  className="bg-white rounded-sm focus-visible:ring-[3px] focus-visible:ring-orange-500/20 focus-visible:border-orange-500"
-                />
-              </div>
-
-              <div className="grid w-full gap-2">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  value={shelter.email}
-                  onChange={(e) => updateShelter("email", e.target.value)}
-                  className="bg-white rounded-sm focus-visible:ring-[3px] focus-visible:ring-orange-500/20 focus-visible:border-orange-500"
+                  placeholder="Deskripsi singkat shelter"
                 />
               </div>
 
@@ -287,64 +270,37 @@ export default function BuatShelter() {
               <SizedBox />
 
               <div className="grid w-full gap-2">
-                <Label>Negara/Daerah</Label>
-                <Select
-                  value={shelter.negara}
-                  onValueChange={(v) => updateShelter("negara", v)}
-                >
-                  <SelectTrigger className="w-full bg-white rounded-sm focus-visible:ring-[3px] focus-visible:ring-orange-500/20 focus-visible:border-orange-500">
-                    <SelectValue placeholder="Pilih Negara/Daerah" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectGroup>
-                      <SelectLabel>Negara/Daerah</SelectLabel>
-                      <SelectItem value="indonesia">Indonesia</SelectItem>
-                      <SelectItem value="malaysia">Malaysia</SelectItem>
-                      <SelectItem value="singapure">Singapure</SelectItem>
-                      <SelectItem value="thailand">Thailand</SelectItem>
-                      <SelectItem value="myanmar">Myanmar</SelectItem>
-                    </SelectGroup>
-                  </SelectContent>
-                </Select>
+                <Label htmlFor="nomorRekening">Nomor Rekening</Label>
+                <Input
+                  id="nomorRekening"
+                  value={shelter.nomorRekening}
+                  onChange={(e) => updateShelter("nomorRekening", e.target.value)}
+                  className="bg-white rounded-sm focus-visible:ring-[3px] focus-visible:ring-orange-500/20 focus-visible:border-orange-500"
+                  placeholder="Masukkan nomor rekening"
+                />
               </div>
 
-              <Row className="gap-4">
-                <div className="grid w-full gap-2">
-                  <Label>Jalan</Label>
-                  <Select
-                    value={shelter.jalan}
-                    onValueChange={(v) => updateShelter("jalan", v)}
-                  >
-                    <SelectTrigger className="w-full bg-white rounded-sm focus-visible:ring-[3px] focus-visible:ring-orange-500/20 focus-visible:border-orange-500">
-                      <SelectValue placeholder="Pilih Jalan" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectGroup>
-                        <SelectLabel>Jalan</SelectLabel>
-                        <SelectItem value="telekomunikasi">
-                          Telekomunikasi
-                        </SelectItem>
-                        <SelectItem value="marditomo">Mardi Utomo</SelectItem>
-                        <SelectItem value="diponegoro">Diponegoro</SelectItem>
-                        <SelectItem value="jendralSudirman">
-                          Jendral Sudirman
-                        </SelectItem>
-                        <SelectItem value="bojongsoang">Bojongosang</SelectItem>
-                      </SelectGroup>
-                    </SelectContent>
-                  </Select>
-                </div>
+              <div className="grid w-full gap-2">
+                <Label htmlFor="namaPemilikRekening">Nama Pemilik Rekening</Label>
+                <Input
+                  id="namaPemilikRekening"
+                  value={shelter.namaPemilikRekening}
+                  onChange={(e) => updateShelter("namaPemilikRekening", e.target.value)}
+                  className="bg-white rounded-sm focus-visible:ring-[3px] focus-visible:ring-orange-500/20 focus-visible:border-orange-500"
+                  placeholder="Nama pemilik rekening"
+                />
+              </div>
 
-                <div className="w-full grid gap-2">
-                  <Label htmlFor="zipCode">Zip Code</Label>
-                  <Input
-                    id="zipCode"
-                    value={shelter.zipCode}
-                    onChange={(e) => updateShelter("zipCode", e.target.value)}
-                    className="bg-white rounded-sm focus-visible:ring-[3px] focus-visible:ring-orange-500/20 focus-visible:border-orange-500"
-                  />
-                </div>
-              </Row>
+              <div className="grid w-full gap-2 col-span-2">
+                <Label htmlFor="alamatLengkap">Alamat Lengkap Shelter</Label>
+                <Input
+                  id="alamatLengkap"
+                  value={shelter.alamatLengkap}
+                  onChange={(e) => updateShelter("alamatLengkap", e.target.value)}
+                  className="bg-white rounded-sm focus-visible:ring-[3px] focus-visible:ring-orange-500/20 focus-visible:border-orange-500"
+                  placeholder="Masukkan alamat lengkap shelter"
+                />
+              </div>
             </div>
             <SizedBox height={25} />
             <Button

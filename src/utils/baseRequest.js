@@ -11,6 +11,39 @@ export const axiosBaseConfig = {
 
 const request = axios.create(axiosBaseConfig);
 
+const TOKEN_KEYS = [
+  "token",
+  "accessToken",
+  "authToken",
+  "access_token",
+  "bearerToken",
+];
+
+function findTokenInObject(value, depth = 3) {
+  if (!value || typeof value !== "object") return null;
+
+  for (const key of Object.keys(value)) {
+    if (TOKEN_KEYS.includes(key)) {
+      return value[key];
+    }
+  }
+
+  if (depth <= 0) return null;
+
+  for (const nested of Object.values(value)) {
+    if (typeof nested === "object" && nested !== null) {
+      const token = findTokenInObject(nested, depth - 1);
+      if (token) return token;
+    }
+  }
+
+  return null;
+}
+
+function resolveStoredToken(user) {
+  return findTokenInObject(user, 4);
+}
+
 // Request interceptor: Add Bearer token and handle FormData
 request.interceptors.request.use((config) => {
   // Handle FormData - remove Content-Type to let browser set it with boundary
@@ -26,7 +59,7 @@ request.interceptors.request.use((config) => {
     if (authUser) {
       try {
         const user = JSON.parse(authUser);
-        const token = user?.token || user?.accessToken || user?.authToken;
+        const token = resolveStoredToken(user);
         if (token) {
           config.headers.Authorization = `Bearer ${token}`;
         }

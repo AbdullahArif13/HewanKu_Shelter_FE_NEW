@@ -12,18 +12,23 @@ import { IconAssets } from "@/common/constant/assets";
 import { useNavigator } from "@/utils/helper";
 import { useShelter } from "@/contexts/shelter-context";
 import { useAuth } from "@/contexts/auth-context";
+import { useGetShelterAnimals } from "@/hooks/animal.hooks";
 
 export default function HeaderHome() {
   const nav = useNavigator();
-  const { user, isLoading: authLoading } = useAuth();
-  const { hasShelter, isLoading } = useShelter();
+  const { isLoading: authLoading } = useAuth();
+  const { hasShelter, isLoading, shelter } = useShelter();
+  const { animals, isLoading: animalsLoading } = useGetShelterAnimals({ enabled: hasShelter });
 
   if (authLoading || isLoading) return null;
+
+  const animalCount = animalsLoading ? "..." : animals.length;
+  const bannerImageUrl = shelter?.foto || "/images/shelter_placeholder.png";
 
   return (
     <Row className="gap-12">
       <Container className="relative w-1/2 rounded-lg p-5 flex flex-col overflow-hidden">
-        <div className="absolute inset-0 bg-[url('/images/shelter_placeholder.png')] bg-no-repeat bg-cover bg-center" />
+        <div className="absolute inset-0 bg-no-repeat bg-cover bg-center" style={{ backgroundImage: `url(${bannerImageUrl})` }} />
         <div className="absolute inset-0 bg-black/50" />
 
         <div className="relative z-10">
@@ -76,7 +81,7 @@ export default function HeaderHome() {
             </Container>
 
             <div className="flex flex-col">
-              <Text className="font-semibold text-lg">6</Text>
+              <Text className="font-semibold text-lg">{animalCount}</Text>
               <Text className="text-xs text-[#68676E]">
                 Hewan yang siap di adopsi
               </Text>

@@ -30,6 +30,59 @@ export function AuthProvider({ children }) {
     setIsLoading(false);
   }, []);
 
+  const getTokenFromResponse = (value, depth = 3) => {
+    if (!value || typeof value !== "object") return null;
+
+    const keys = [
+      "token",
+      "accessToken",
+      "authToken",
+      "access_token",
+      "bearerToken",
+    ];
+
+    for (const key of Object.keys(value)) {
+      if (keys.includes(key)) {
+        return value[key];
+      }
+    }
+
+    if (depth <= 0) return null;
+
+    for (const nested of Object.values(value)) {
+      if (typeof nested === "object" && nested !== null) {
+        const token = getTokenFromResponse(nested, depth - 1);
+        if (token) return token;
+      }
+    }
+
+    return null;
+  };
+
+  const normalizeUserObject = (user) => {
+    if (!user || typeof user !== "object") return user;
+
+    const normalized = { ...user };
+    if (!normalized.id && normalized._id) {
+      normalized.id = normalized._id;
+    }
+
+    if (!normalized.id && normalized.data?.id) {
+      normalized.id = normalized.data.id;
+    }
+
+    if (!normalized.id && normalized.details?.id) {
+      normalized.id = normalized.details.id;
+    }
+
+    if (!normalized.token) {
+      const token = getTokenFromResponse(normalized, 4);
+      if (token) normalized.token = token;
+    }
+
+    return normalized;
+  };
+
   const login = async ({ body }) => {
     setIsLoading(true);
     try {
@@ -40,8 +93,9 @@ export function AuthProvider({ children }) {
         return;
       }
 
-      setUser(res.data);
-      localStorage.setItem("auth_user", JSON.stringify(res.data)); // 🔐 PERSIST
+      const persistedUser = normalizeUserObject(res?.data || res?.details || res);
+      setUser(persistedUser);
+      localStorage.setItem("auth_user", JSON.stringify(persistedUser)); // 🔐 PERSIST
       router.push("/home");
     } catch (error) {
       toast.error(error?.message || "Login failed");

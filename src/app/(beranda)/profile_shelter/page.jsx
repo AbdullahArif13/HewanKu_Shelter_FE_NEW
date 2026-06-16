@@ -35,8 +35,24 @@ export default function ProfileShelterPage() {
     },
   });
 
-  const [shelter, setShelter] = useState({});
-  const [shelterDraft, setShelterDraft] = useState({});
+  const [shelter, setShelter] = useState({
+    shelterName: "",
+    deskripsi: "",
+    email: "",
+    metodePembayaran: "",
+    nomorRekening: "",
+    namaPemilikRekening: "",
+    alamatLengkap: "",
+  });
+  const [shelterDraft, setShelterDraft] = useState({
+    shelterName: "",
+    deskripsi: "",
+    email: "",
+    metodePembayaran: "",
+    nomorRekening: "",
+    namaPemilikRekening: "",
+    alamatLengkap: "",
+  });
   const [isEditing, setIsEditing] = useState(false);
 
   const [previewUrl, setPreviewUrl] = useState("");
@@ -47,14 +63,13 @@ export default function ProfileShelterPage() {
   useEffect(() => {
     if (profile) {
       const data = {
-        shleterName: profile.namaShelter || profile.shelterName || "",
-        ownerName: profile.namaPemilik || profile.ownerName || "",
+        shelterName: profile.namaShelter || profile.shelterName || "",
+        deskripsi: profile.deskripsi || profile.description || "",
         email: profile.email || "",
-        noTelephone: profile.noTelepon || profile.phone || "",
         metodePembayaran: profile.metodePembayaran || profile.paymentMethod || "",
-        negara: profile.negara || profile.country || "",
-        jalan: profile.jalan || profile.street || "",
-        zipCode: profile.zipCode || profile.postalCode || "",
+        nomorRekening: profile.nomorRekening || profile.accountNumber || "",
+        namaPemilikRekening: profile.namaPemilikRekening || profile.accountHolder || "",
+        alamatLengkap: profile.alamatLengkap || profile.address || "",
       };
       setShelter(data);
     }
@@ -127,16 +142,17 @@ export default function ProfileShelterPage() {
 
   const handleSave = () => {
     const payload = new FormData();
-    payload.append("namaShelter", shelter.shleterName);
-    payload.append("namaPemilik", shelter.ownerName);
+    payload.append("namaShelter", shelter.shelterName);
+    payload.append("deskripsi", shelter.deskripsi);
     payload.append("email", shelter.email);
-    payload.append("noTelepon", shelter.noTelephone);
     payload.append("metodePembayaran", shelter.metodePembayaran);
-    payload.append("negara", shelter.negara);
-    payload.append("jalan", shelter.jalan);
-    payload.append("zipCode", shelter.zipCode);
+    payload.append("nomorRekening", shelter.nomorRekening);
+    payload.append("namaPemilikRekening", shelter.namaPemilikRekening);
+    payload.append("alamatLengkap", shelter.alamatLengkap);
     
     if (file) {
+      // append both keys to be compatible with backend variations
+      payload.append("logo", file);
       payload.append("foto", file);
     }
 
@@ -263,46 +279,34 @@ export default function ProfileShelterPage() {
                 <Label htmlFor="shelterName">Nama Shelter</Label>
                 <Input
                   id="shelterName"
-                  value={shelter.shleterName}
+                  value={shelter.shelterName}
                   readOnly={!isEditing}
-                  onChange={(e) => updateShelter("shleterName", e.target.value)}
+                  onChange={(e) => updateShelter("shelterName", e.target.value)}
                   className={`${inputClass} ${!isEditing ? readonlyClass : ""}`}
                 />
               </div>
 
               {/* Nama Owner */}
+              {/* Deskripsi Singkat */}
               <div className="grid w-full gap-2">
-                <Label htmlFor="ownerName">Nama Owner</Label>
+                <Label htmlFor="deskripsi">Deskripsi Singkat</Label>
                 <Input
-                  id="ownerName"
-                  value={shelter.ownerName}
+                  id="deskripsi"
+                  value={shelter.deskripsi}
                   readOnly={!isEditing}
-                  onChange={(e) => updateShelter("ownerName", e.target.value)}
+                  onChange={(e) => updateShelter("deskripsi", e.target.value)}
                   className={`${inputClass} ${!isEditing ? readonlyClass : ""}`}
                 />
               </div>
 
-              {/* No Telp */}
+              {/* Email (account) - always read-only */}
               <div className="grid w-full gap-2">
-                <Label htmlFor="noTelp">Nomor Telephone</Label>
-                <Input
-                  id="noTelp"
-                  value={shelter.noTelephone}
-                  readOnly={!isEditing}
-                  onChange={(e) => updateShelter("noTelephone", e.target.value)}
-                  className={`${inputClass} ${!isEditing ? readonlyClass : ""}`}
-                />
-              </div>
-
-              {/* Email */}
-              <div className="grid w-full gap-2">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="email">Email Akun</Label>
                 <Input
                   id="email"
                   value={shelter.email}
-                  readOnly={!isEditing}
-                  onChange={(e) => updateShelter("email", e.target.value)}
-                  className={`${inputClass} ${!isEditing ? readonlyClass : ""}`}
+                  readOnly
+                  className={`${inputClass} ${readonlyClass}`}
                 />
               </div>
 
@@ -335,80 +339,38 @@ export default function ProfileShelterPage() {
 
               <SizedBox />
 
-              {/* Negara */}
               <div className="grid w-full gap-2">
-                <Label>Negara/Daerah</Label>
-                <Select
-                  value={shelter.negara}
-                  onValueChange={(v) => updateShelter("negara", v)}
-                  disabled={!isEditing}
-                >
-                  <SelectTrigger
-                    className={`${inputClass} ${
-                      !isEditing ? readonlyClass : ""
-                    }`}
-                  >
-                    <SelectValue placeholder="Pilih Negara/Daerah" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectGroup>
-                      <SelectLabel>Negara/Daerah</SelectLabel>
-                      <SelectItem value="indonesia">Indonesia</SelectItem>
-                      <SelectItem value="malaysia">Malaysia</SelectItem>
-                      <SelectItem value="singapure">Singapure</SelectItem>
-                      <SelectItem value="thailand">Thailand</SelectItem>
-                      <SelectItem value="myanmar">Myanmar</SelectItem>
-                    </SelectGroup>
-                  </SelectContent>
-                </Select>
+                <Label htmlFor="nomorRekening">Nomor Rekening</Label>
+                <Input
+                  id="nomorRekening"
+                  value={shelter.nomorRekening}
+                  readOnly={!isEditing}
+                  onChange={(e) => updateShelter("nomorRekening", e.target.value)}
+                  className={`${inputClass} ${!isEditing ? readonlyClass : ""}`}
+                />
               </div>
 
-              {/* Jalan + Zip */}
-              <Row className="gap-4">
-                <div className="grid w-full gap-2">
-                  <Label>Jalan</Label>
-                  <Select
-                    value={shelter.jalan}
-                    onValueChange={(v) => updateShelter("jalan", v)}
-                    disabled={!isEditing}
-                  >
-                    <SelectTrigger
-                      className={`${inputClass} ${
-                        !isEditing ? readonlyClass : ""
-                      }`}
-                    >
-                      <SelectValue placeholder="Pilih Jalan" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectGroup>
-                        <SelectLabel>Jalan</SelectLabel>
-                        <SelectItem value="telekomunikasi">
-                          Telekomunikasi
-                        </SelectItem>
-                        <SelectItem value="marditomo">Mardi Utomo</SelectItem>
-                        <SelectItem value="diponegoro">Diponegoro</SelectItem>
-                        <SelectItem value="jendralSudirman">
-                          Jendral Sudirman
-                        </SelectItem>
-                        <SelectItem value="bojongsoang">Bojongosang</SelectItem>
-                      </SelectGroup>
-                    </SelectContent>
-                  </Select>
-                </div>
+              <div className="grid w-full gap-2">
+                <Label htmlFor="namaPemilikRekening">Nama Pemilik Rekening</Label>
+                <Input
+                  id="namaPemilikRekening"
+                  value={shelter.namaPemilikRekening}
+                  readOnly={!isEditing}
+                  onChange={(e) => updateShelter("namaPemilikRekening", e.target.value)}
+                  className={`${inputClass} ${!isEditing ? readonlyClass : ""}`}
+                />
+              </div>
 
-                <div className="w-full grid gap-2">
-                  <Label htmlFor="zipCode">Zip Code</Label>
-                  <Input
-                    id="zipCode"
-                    value={shelter.zipCode}
-                    readOnly={!isEditing}
-                    onChange={(e) => updateShelter("zipCode", e.target.value)}
-                    className={`${inputClass} ${
-                      !isEditing ? readonlyClass : ""
-                    }`}
-                  />
-                </div>
-              </Row>
+              <div className="grid w-full gap-2 col-span-2">
+                <Label htmlFor="alamatLengkap">Alamat Lengkap Shelter</Label>
+                <Input
+                  id="alamatLengkap"
+                  value={shelter.alamatLengkap}
+                  readOnly={!isEditing}
+                  onChange={(e) => updateShelter("alamatLengkap", e.target.value)}
+                  className={`${inputClass} ${!isEditing ? readonlyClass : ""}`}
+                />
+              </div>
             </div>
 
             <SizedBox height={25} />

@@ -16,8 +16,9 @@ export default function RegisterPage() {
           src={ImageAssets.registerMockup}
           alt="registerMock"
           width={425}
-          height={0}
-          className="rounded-2xl object-cover"
+          height={500}
+          loading="eager"
+          className="rounded-2xl object-cover w-full h-auto"
         />
       </div>
 
