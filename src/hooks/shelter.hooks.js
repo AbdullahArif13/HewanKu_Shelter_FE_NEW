@@ -2,6 +2,7 @@ import { fetch } from "@/utils/baseFetch";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo } from "react";
 import { toast } from "sonner";
+import { useAuth } from "@/contexts/auth-context";
 import {
   getShelter,
   createShelter,
@@ -50,21 +51,40 @@ export function useGetShelter() {
 
 // ============ SHELTER PROFILE QUERIES ============
 export function useGetShelterProfile() {
+  const { user } = useAuth();
+
   const { data, isLoading, refetch } = useQuery({
     queryKey: ["getShelterProfile"],
-    queryFn: () => getShelterProfile(),
+    queryFn: () => getShelterProfile({ token: user?.token }),
     retry: false,
-    staleTime: 300000,
-    cacheTime: Infinity,
-    refetchOnWindowFocus: false,
+    staleTime: 0,
+    gcTime: 1000 * 60 * 5, // 5 minutes garbage collection
+    refetchOnMount: true,
+    refetchOnWindowFocus: "stale",
+    enabled: !!user?.token, // Only run query if user has token
     onError: (error) => {
+      console.error("🔴 Query error for getShelterProfile:", error);
       toast.error("Gagal memuat profil shelter", {
         description: error?.message || "Terjadi kesalahan",
       });
     },
   });
 
-  const profile = useMemo(() => data?.details, [data]);
+  const profile = useMemo(() => {
+    console.log("📊 useGetShelterProfile - raw response:", data);
+    const userInfo = data?.details; // Contains email, nama, etc from root
+    const shelterInfo = data?.details?.shelterAcc; // Contains shelter-specific fields
+    console.log("📊 useGetShelterProfile - userInfo:", userInfo);
+    console.log("📊 useGetShelterProfile - shelterInfo:", shelterInfo);
+    
+    // Merge both objects for easy access in component
+    const merged = {
+      ...userInfo,
+      shelterAcc: shelterInfo,
+    };
+    console.log("📊 useGetShelterProfile - returning merged:", merged);
+    return merged;
+  }, [data]);
 
   return {
     profile,
@@ -108,13 +128,21 @@ export function useGetShelterOrders() {
 // ============ SHELTER MUTATIONS ============
 export function useCreateShelterMutation({ successAction }) {
   const queryClient = useQueryClient();
+  const { user } = useAuth();
 
   const mutation = useMutation({
-    mutationFn: ({ payload }) => createShelter({ body: payload }),
+    mutationFn: ({ payload }) => {
+      if (!user?.token) {
+        return Promise.reject(new Error("Token tidak ditemukan. Silakan login ulang."));
+      }
+      return createShelter({ body: payload, token: user.token });
+    },
     onSuccess: (data) => {
       if (data?.statusCode === 201 || data?.details?.code === 201) {
         toast.success(data?.details?.message || "Shelter berhasil dibuat");
+        // Invalidate both queries so data is fresh when user navigates
         queryClient.invalidateQueries({ queryKey: ["getShelter"] });
+        queryClient.invalidateQueries({ queryKey: ["getShelterProfile"] });
         successAction?.();
       } else {
         toast.error("Gagal membuat shelter", {
@@ -134,9 +162,10 @@ export function useCreateShelterMutation({ successAction }) {
 
 export function useUpdateShelterProfileMutation({ successAction }) {
   const queryClient = useQueryClient();
+  const { user } = useAuth();
 
   const mutation = useMutation({
-    mutationFn: ({ payload }) => updateShelterProfile({ body: payload }),
+    mutationFn: ({ payload }) => updateShelterProfile({ body: payload, token: user?.token }),
     onSuccess: (data) => {
       if (data?.statusCode === 200) {
         toast.success(data?.message || "Profil berhasil diperbarui");

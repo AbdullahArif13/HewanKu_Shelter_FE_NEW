@@ -44,30 +44,60 @@ function resolveStoredToken(user) {
   return findTokenInObject(user, 4);
 }
 
+function formatBearerToken(token) {
+  if (!token) return null;
+  const rawToken = String(token).trim();
+  if (/^Bearer\s+/i.test(rawToken)) return rawToken;
+  return `Bearer ${rawToken}`;
+}
+
 // Request interceptor: Add Bearer token and handle FormData
 request.interceptors.request.use((config) => {
   // Handle FormData - remove Content-Type to let browser set it with boundary
-  if (config.data instanceof FormData) {
+  if (typeof FormData !== "undefined" && config.data instanceof FormData) {
     if (config.headers && config.headers["Content-Type"]) {
       delete config.headers["Content-Type"];
     }
   }
 
-  // Add Bearer token from localStorage if available
-  if (typeof window !== "undefined") {
+  if (!config.headers) {
+    config.headers = {};
+  }
+
+  if (config.token) {
+    config.headers.Authorization = formatBearerToken(config.token);
+    console.log(`✓ Authorization header set from config.token for ${config.url}`);
+  } else if (typeof window !== "undefined") {
     const authUser = window.localStorage.getItem("auth_user");
+    console.log(`🔐 [DEBUG] Checking auth_user from localStorage for ${config.url}:`, authUser ? "EXISTS" : "MISSING");
+    
     if (authUser) {
       try {
         const user = JSON.parse(authUser);
+        console.log(`🔐 [DEBUG] Parsed auth_user object:`, user);
+        
         const token = resolveStoredToken(user);
+        console.log(`🔐 [DEBUG] Extracted token:`, token ? `"${token.substring(0, 20)}..."` : "NULL");
+        
         if (token) {
-          config.headers.Authorization = `Bearer ${token}`;
+          const bearerToken = formatBearerToken(token);
+          config.headers.Authorization = bearerToken;
+          console.log(`✅ Authorization header SET for ${config.url}: ${bearerToken.substring(0, 30)}...`);
+        } else {
+          console.warn(`⚠ No token found in auth_user for ${config.url}`);
         }
       } catch (e) {
-        // Invalid JSON, skip token injection
+        console.error(`⚠ Invalid JSON in localStorage.auth_user:`, e.message);
       }
+    } else {
+      console.warn(`⚠ localStorage.auth_user not found for ${config.url}`);
     }
   }
+
+  console.log(`📤 [${config.method?.toUpperCase()}] ${config.url}`, {
+    hasAuth: !!config.headers.Authorization,
+    authHeader: config.headers.Authorization ? config.headers.Authorization.substring(0, 30) + "..." : "NONE"
+  });
 
   return config;
 });

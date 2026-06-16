@@ -51,7 +51,8 @@ export default function BuatShelter() {
   const { user } = useAuth();
   const addShelterMutation = useCreateShelterMutation({
     successAction: () => {
-      nav.replace("/home");
+      // Redirect ke profile shelter agar user bisa langsung lihat data yang baru dibuat
+      nav.replace("/profile_shelter");
     },
   });
 

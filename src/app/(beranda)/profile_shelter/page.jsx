@@ -16,6 +16,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Trash2 } from "lucide-react";
 import { toast } from "sonner";
+import { useAuth } from "@/contexts/auth-context";
 import { useGetShelterProfile, useUpdateShelterProfileMutation } from "@/hooks/shelter.hooks";
 import {
   Select,
@@ -28,6 +29,7 @@ import {
 } from "@/components/ui/select";
 
 export default function ProfileShelterPage() {
+  const { user } = useAuth();
   const { profile, isLoading: profileLoading, refetch } = useGetShelterProfile();
   const updateProfileMutation = useUpdateShelterProfileMutation({
     successAction: () => {
@@ -37,21 +39,31 @@ export default function ProfileShelterPage() {
 
   const [shelter, setShelter] = useState({
     shelterName: "",
-    deskripsi: "",
+    namaPemilik: "",
+    noTelepon: "",
     email: "",
     metodePembayaran: "",
+    negara: "",
+    jalan: "",
+    telekomunkasi: "",
+    zipCode: "",
+    deskripsi: "",
     nomorRekening: "",
     namaPemilikRekening: "",
-    alamatLengkap: "",
   });
   const [shelterDraft, setShelterDraft] = useState({
     shelterName: "",
-    deskripsi: "",
+    namaPemilik: "",
+    noTelepon: "",
     email: "",
     metodePembayaran: "",
+    negara: "",
+    jalan: "",
+    telekomunkasi: "",
+    zipCode: "",
+    deskripsi: "",
     nomorRekening: "",
     namaPemilikRekening: "",
-    alamatLengkap: "",
   });
   const [isEditing, setIsEditing] = useState(false);
 
@@ -61,19 +73,37 @@ export default function ProfileShelterPage() {
 
   // Initialize shelter data from profile
   useEffect(() => {
-    if (profile) {
+    console.log("📋 [ProfileShelter] Profile received:", profile);
+    console.log("📋 [ProfileShelter] Profile loading:", profileLoading);
+    console.log("📋 [ProfileShelter] User email:", user?.email);
+    if (profile && profile.shelterAcc) {
+      console.log("📋 [ProfileShelter] Mapping profile data from shelterAcc...");
+      const shelterAcc = profile.shelterAcc;
       const data = {
-        shelterName: profile.namaShelter || profile.shelterName || "",
-        deskripsi: profile.deskripsi || profile.description || "",
-        email: profile.email || "",
-        metodePembayaran: profile.metodePembayaran || profile.paymentMethod || "",
-        nomorRekening: profile.nomorRekening || profile.accountNumber || "",
-        namaPemilikRekening: profile.namaPemilikRekening || profile.accountHolder || "",
-        alamatLengkap: profile.alamatLengkap || profile.address || "",
+        shelterName: shelterAcc.namaShelter || "",
+        namaPemilik: shelterAcc.namaPemilik || shelterAcc.namaOwner || "",
+        noTelepon: shelterAcc.noTelepon || shelterAcc.nomorTelepon || "",
+        email: profile.email || user?.email || "",
+        metodePembayaran: shelterAcc.metodePembayaran || "",
+        negara: shelterAcc.negara || "",
+        jalan: shelterAcc.jalan || shelterAcc.alamatJalan || "",
+        telekomunkasi: shelterAcc.telekomunkasi || shelterAcc.telekomunikasi || "",
+        zipCode: shelterAcc.zipCode || shelterAcc.kodePos || "",
+        deskripsi: shelterAcc.deskripsi || "",
+        nomorRekening: shelterAcc.nomorRekening || "",
+        namaPemilikRekening: shelterAcc.namaPemilikRekening || "",
       };
+      console.log("✅ [ProfileShelter] Mapped data:", data);
       setShelter(data);
+      // Also set preview URL if logo exists
+      if (shelterAcc.urlLogo && !previewUrl) {
+        console.log("📷 Setting logo preview:", shelterAcc.urlLogo);
+        setPreviewUrl(shelterAcc.urlLogo);
+      }
+    } else {
+      console.warn("⚠ [ProfileShelter] No profile or shelterAcc data received");
     }
-  }, [profile]);
+  }, [profile, user]);
 
   useEffect(() => {
     return () => {
@@ -143,15 +173,19 @@ export default function ProfileShelterPage() {
   const handleSave = () => {
     const payload = new FormData();
     payload.append("namaShelter", shelter.shelterName);
-    payload.append("deskripsi", shelter.deskripsi);
+    payload.append("namaPemilik", shelter.namaPemilik);
+    payload.append("noTelepon", shelter.noTelepon);
     payload.append("email", shelter.email);
     payload.append("metodePembayaran", shelter.metodePembayaran);
+    payload.append("negara", shelter.negara);
+    payload.append("jalan", shelter.jalan);
+    payload.append("telekomunkasi", shelter.telekomunkasi);
+    payload.append("zipCode", shelter.zipCode);
+    payload.append("deskripsi", shelter.deskripsi);
     payload.append("nomorRekening", shelter.nomorRekening);
     payload.append("namaPemilikRekening", shelter.namaPemilikRekening);
-    payload.append("alamatLengkap", shelter.alamatLengkap);
     
     if (file) {
-      // append both keys to be compatible with backend variations
       payload.append("logo", file);
       payload.append("foto", file);
     }
@@ -205,9 +239,9 @@ export default function ProfileShelterPage() {
                     fill
                     className="object-cover"
                   />
-                ) : profile?.foto ? (
+                ) : profile?.shelterAcc?.urlLogo ? (
                   <Image
-                    src={profile.foto}
+                    src={profile.shelterAcc.urlLogo}
                     alt="Shelter Photo"
                     fill
                     className="object-cover"
@@ -237,7 +271,7 @@ export default function ProfileShelterPage() {
                   className={`absolute inset-0 bg-black/0 group-hover:bg-black/40 transition
                     flex items-center justify-center
                     ${
-                      isEditing && (previewUrl || profile?.foto)
+                      isEditing && (previewUrl || profile?.shelterAcc?.urlLogo)
                         ? "opacity-0 group-hover:opacity-100"
                         : "opacity-0"
                     }
@@ -248,7 +282,7 @@ export default function ProfileShelterPage() {
               </div>
 
               {/* Trash button (hapus) - hanya saat edit */}
-              {(previewUrl || profile?.foto) && isEditing && (
+              {(previewUrl || profile?.shelterAcc?.urlLogo) && isEditing && (
                 <button
                   type="button"
                   onClick={(e) => {
@@ -287,21 +321,32 @@ export default function ProfileShelterPage() {
               </div>
 
               {/* Nama Owner */}
-              {/* Deskripsi Singkat */}
               <div className="grid w-full gap-2">
-                <Label htmlFor="deskripsi">Deskripsi Singkat</Label>
+                <Label htmlFor="namaPemilik">Nama Owner</Label>
                 <Input
-                  id="deskripsi"
-                  value={shelter.deskripsi}
+                  id="namaPemilik"
+                  value={shelter.namaPemilik}
                   readOnly={!isEditing}
-                  onChange={(e) => updateShelter("deskripsi", e.target.value)}
+                  onChange={(e) => updateShelter("namaPemilik", e.target.value)}
+                  className={`${inputClass} ${!isEditing ? readonlyClass : ""}`}
+                />
+              </div>
+
+              {/* Nomor Telephone */}
+              <div className="grid w-full gap-2">
+                <Label htmlFor="noTelepon">Nomor Telephone</Label>
+                <Input
+                  id="noTelepon"
+                  value={shelter.noTelepon}
+                  readOnly={!isEditing}
+                  onChange={(e) => updateShelter("noTelepon", e.target.value)}
                   className={`${inputClass} ${!isEditing ? readonlyClass : ""}`}
                 />
               </div>
 
               {/* Email (account) - always read-only */}
               <div className="grid w-full gap-2">
-                <Label htmlFor="email">Email Akun</Label>
+                <Label htmlFor="email">Email</Label>
                 <Input
                   id="email"
                   value={shelter.email}
@@ -319,9 +364,7 @@ export default function ProfileShelterPage() {
                   disabled={!isEditing}
                 >
                   <SelectTrigger
-                    className={`${inputClass} ${
-                      !isEditing ? readonlyClass : ""
-                    }`}
+                    className={`${inputClass} ${!isEditing ? readonlyClass : ""}`}
                   >
                     <SelectValue placeholder="Pilih Metode Pembayaran" />
                   </SelectTrigger>
@@ -339,6 +382,69 @@ export default function ProfileShelterPage() {
 
               <SizedBox />
 
+              {/* Negara/Daerah */}
+              <div className="grid w-full gap-2">
+                <Label htmlFor="negara">Negara/Daerah</Label>
+                <Input
+                  id="negara"
+                  value={shelter.negara}
+                  readOnly={!isEditing}
+                  onChange={(e) => updateShelter("negara", e.target.value)}
+                  className={`${inputClass} ${!isEditing ? readonlyClass : ""}`}
+                />
+              </div>
+
+              {/* Jalan */}
+              <div className="grid w-full gap-2">
+                <Label htmlFor="jalan">Jalan</Label>
+                <Input
+                  id="jalan"
+                  value={shelter.jalan}
+                  readOnly={!isEditing}
+                  onChange={(e) => updateShelter("jalan", e.target.value)}
+                  className={`${inputClass} ${!isEditing ? readonlyClass : ""}`}
+                />
+              </div>
+
+              {/* Zip Code */}
+              <div className="grid w-full gap-2">
+                <Label htmlFor="zipCode">Zip Code</Label>
+                <Input
+                  id="zipCode"
+                  value={shelter.zipCode}
+                  readOnly={!isEditing}
+                  onChange={(e) => updateShelter("zipCode", e.target.value)}
+                  className={`${inputClass} ${!isEditing ? readonlyClass : ""}`}
+                />
+              </div>
+
+              {/* Telekomunkasi */}
+              <div className="grid w-full gap-2">
+                <Label htmlFor="telekomunkasi">Telekomunkasi</Label>
+                <Input
+                  id="telekomunkasi"
+                  value={shelter.telekomunkasi}
+                  readOnly={!isEditing}
+                  onChange={(e) => updateShelter("telekomunkasi", e.target.value)}
+                  className={`${inputClass} ${!isEditing ? readonlyClass : ""}`}
+                />
+              </div>
+
+              <SizedBox />
+
+              {/* Deskripsi */}
+              <div className="grid w-full gap-2 col-span-2">
+                <Label htmlFor="deskripsi">Deskripsi</Label>
+                <Input
+                  id="deskripsi"
+                  value={shelter.deskripsi}
+                  readOnly={!isEditing}
+                  onChange={(e) => updateShelter("deskripsi", e.target.value)}
+                  className={`${inputClass} ${!isEditing ? readonlyClass : ""}`}
+                />
+              </div>
+
+              {/* Nomor Rekening */}
               <div className="grid w-full gap-2">
                 <Label htmlFor="nomorRekening">Nomor Rekening</Label>
                 <Input
@@ -350,6 +456,7 @@ export default function ProfileShelterPage() {
                 />
               </div>
 
+              {/* Nama Pemilik Rekening */}
               <div className="grid w-full gap-2">
                 <Label htmlFor="namaPemilikRekening">Nama Pemilik Rekening</Label>
                 <Input
@@ -357,17 +464,6 @@ export default function ProfileShelterPage() {
                   value={shelter.namaPemilikRekening}
                   readOnly={!isEditing}
                   onChange={(e) => updateShelter("namaPemilikRekening", e.target.value)}
-                  className={`${inputClass} ${!isEditing ? readonlyClass : ""}`}
-                />
-              </div>
-
-              <div className="grid w-full gap-2 col-span-2">
-                <Label htmlFor="alamatLengkap">Alamat Lengkap Shelter</Label>
-                <Input
-                  id="alamatLengkap"
-                  value={shelter.alamatLengkap}
-                  readOnly={!isEditing}
-                  onChange={(e) => updateShelter("alamatLengkap", e.target.value)}
                   className={`${inputClass} ${!isEditing ? readonlyClass : ""}`}
                 />
               </div>

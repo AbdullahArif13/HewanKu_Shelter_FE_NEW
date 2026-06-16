@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { useAuth } from "@/contexts/auth-context";
 import {
   getShelterAnimals,
   getAnimalDetails,
@@ -19,10 +20,12 @@ function extractArrayPayload(data) {
   return [];
 }
 
-export function useGetShelterAnimals() {
+export function useGetShelterAnimals({ enabled = true } = {}) {
+  const { user } = useAuth();
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ["getShelterAnimals"],
-    queryFn: () => getShelterAnimals(),
+    queryFn: () => getShelterAnimals({ token: user?.token }),
+    enabled: enabled && !!user?.token,
     retry: false,
     staleTime: 300000,
     cacheTime: Infinity,
@@ -45,10 +48,11 @@ export function useGetShelterAnimals() {
 }
 
 export function useGetAnimalDetails({ id }) {
+  const { user } = useAuth();
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ["getAnimalDetails", id],
-    queryFn: () => getAnimalDetails({ id }),
-    enabled: Boolean(id),
+    queryFn: () => getAnimalDetails({ id, token: user?.token }),
+    enabled: Boolean(id) && !!user?.token,
     retry: false,
     staleTime: 300000,
     cacheTime: Infinity,
@@ -75,9 +79,10 @@ export function useGetAnimalDetails({ id }) {
 
 export function useAddAnimalMutation({ successAction }) {
   const queryClient = useQueryClient();
+  const { user } = useAuth();
 
   const addAnimalMutation = useMutation({
-    mutationFn: ({ payload }) => addAnimal({ body: payload }),
+    mutationFn: ({ payload }) => addAnimal({ body: payload, token: user?.token }),
     onSuccess: (data) => {
       if (data?.statusCode === 201 || data?.details?.code === 201) {
         toast.success(data?.details?.message || "Hewan berhasil ditambahkan");
@@ -101,9 +106,10 @@ export function useAddAnimalMutation({ successAction }) {
 
 export function useEditAnimalMutation({ successAction }) {
   const queryClient = useQueryClient();
+  const { user } = useAuth();
 
   const editAnimalMutation = useMutation({
-    mutationFn: ({ id, payload }) => editAnimal({ id, body: payload }),
+    mutationFn: ({ id, payload }) => editAnimal({ id, body: payload, token: user?.token }),
     onSuccess: (data) => {
       if (data?.statusCode === 200 || data?.details?.code === 200) {
         toast.success(data?.details?.message || "Hewan berhasil diperbarui");
@@ -128,9 +134,10 @@ export function useEditAnimalMutation({ successAction }) {
 
 export function useDeleteAnimalMutation({ successAction }) {
   const queryClient = useQueryClient();
+  const { user } = useAuth();
 
   const deleteAnimalMutation = useMutation({
-    mutationFn: ({ id }) => deleteAnimal({ id }),
+    mutationFn: ({ id }) => deleteAnimal({ id, token: user?.token }),
     onSuccess: (data) => {
       if (data?.statusCode === 200 || data?.details?.code === 200) {
         toast.success(data?.details?.message || "Hewan berhasil dihapus");

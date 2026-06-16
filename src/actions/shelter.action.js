@@ -43,25 +43,29 @@ export async function forgotPasswordShelter({ body }) {
 }
 
 // ============ PROFILE ENDPOINTS ============
-export async function getShelterProfile() {
+export async function getShelterProfile({ token }) {
   try {
-    const response = await request.get("/shelter/profile");
+    console.log("🔍 Fetching /shelter/profile with token...");
+    const response = await request.get("/shelter/profile", { token });
+    console.log("✅ Profile response received:", response.data);
     return {
       message: "Shelter profile successfully retrieved",
       details: response.data,
       statusCode: 200,
     };
   } catch (error) {
+    console.error("❌ Error fetching profile:", error);
     return handleAxiosError(error);
   }
 }
 
-export async function updateShelterProfile({ body }) {
+export async function updateShelterProfile({ body, token }) {
   try {
     const response = await request({
       method: "patch",
       url: "/shelter/profile",
       data: body,
+      token,
     });
     return {
       message: "Shelter profile successfully updated",
@@ -74,19 +78,23 @@ export async function updateShelterProfile({ body }) {
 }
 
 // ============ SHELTER MANAGEMENT ENDPOINTS ============
-export async function createShelter({ body }) {
+export async function createShelter({ body, token }) {
   try {
+    console.log("📤 Creating shelter with payload...");
     const res = await request({
       method: "post",
       url: "/shelter/create",
       data: body,
+      token,
     });
+    console.log("✅ Shelter creation response:", res.data);
     return {
       message: "Shelter successfully created",
       details: res.data,
       statusCode: 201,
     };
   } catch (error) {
+    console.error("❌ Error creating shelter:", error);
     return handleAxiosError(error);
   }
 }
